@@ -1,6 +1,6 @@
 package com.mrcrayfish.controllable.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.client.Buttons;
 import com.mrcrayfish.controllable.client.Controller;
@@ -18,26 +18,26 @@ public class ControllerAxis extends ControllerButton
     @Override
     public void draw(int x, int y, int mouseX, int mouseY, boolean selected)
     {
-        RenderSystem.pushMatrix();
+        GlStateManager.pushMatrix();
         Controller controller = Controllable.getController();
         if(controller != null)
         {
             switch(button)
             {
                 case Buttons.LEFT_THUMB_STICK:
-                    RenderSystem.translatef(controller.getLThumbStickXValue() * 5, -controller.getLThumbStickYValue() * 5, 0);
+                    GlStateManager.translatef(controller.getLThumbStickXValue() * 5, -controller.getLThumbStickYValue() * 5, 0);
                     break;
                 case Buttons.RIGHT_THUMB_STICK:
-                    RenderSystem.translatef(controller.getRThumbStickXValue() * 5, -controller.getRThumbStickYValue() * 5, 0);
+                    GlStateManager.translatef(controller.getRThumbStickXValue() * 5, -controller.getRThumbStickYValue() * 5, 0);
                     break;
             }
 
             if(!Controllable.isButtonPressed(button))
             {
-                RenderSystem.translated(0, -2.5, 0);
+                GlStateManager.translated(0, -2.5, 0);
             }
         }
         super.draw(x, y, mouseX, mouseY, selected);
-        RenderSystem.popMatrix();
+        GlStateManager.popMatrix();
     }
 }
