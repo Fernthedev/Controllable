@@ -107,6 +107,7 @@ function initializeCoreMod() {
                     desc: "()V",
                     patch: patch_IngameGui_renderSelectedItem
                 }, classNode);
+                return classNode;
             }
         }
     };
@@ -138,6 +139,7 @@ function patch(entry, classNode) {
     }
 }
 
+var ASMAPI = Java.type('net.minecraftforge.coremod.api.ASMAPI');
 var Opcodes = Java.type('org.objectweb.asm.Opcodes');
 var MethodInsnNode = Java.type('org.objectweb.asm.tree.MethodInsnNode');
 var InsnNode = Java.type('org.objectweb.asm.tree.InsnNode');
@@ -317,7 +319,7 @@ function patch_GameRenderer_updateCameraAndRender(method) {
     if(foundNode !== null) {
         var previousNode = foundNode.getPrevious();
         method.instructions.remove(foundNode);
-        method.instructions.insert(previousNode, new MethodInsnNode(Opcodes.INVOKESTATIC, "com/mrcrayfish/controllable/client/Hooks", "drawScreen", "(Lnet/minecraft/client/gui/screen/Screen;IIF)V", false))
+        method.instructions.insert(previousNode, new MethodInsnNode(Opcodes.INVOKESTATIC, "com/mrcrayfish/controllable/client/Hooks", "drawScreen", "(Lnet/minecraft/client/gui/screen/Screen;IIF)V", false));
         return true;
     }
     return false;
