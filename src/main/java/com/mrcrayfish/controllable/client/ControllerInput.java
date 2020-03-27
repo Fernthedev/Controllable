@@ -4,6 +4,7 @@ import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.Reference;
 import com.mrcrayfish.controllable.client.gui.ControllerLayoutScreen;
 import com.mrcrayfish.controllable.event.ControllerEvent;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.IngameMenuScreen;
@@ -50,7 +51,14 @@ public class ControllerInput
 
     private int lastUse = 0;
     private boolean keyboardSneaking = false;
+    private boolean keyboardSprinting = false;
+
+    @Getter
     private boolean sneaking = false;
+
+    @Getter
+    private boolean sprinting = false;
+
     private boolean isFlying = false;
     private boolean nearSlot = false;
     private double virtualMouseX;
@@ -70,6 +78,7 @@ public class ControllerInput
     private int currentAttackTimer;
 
     private int dropCounter = -1;
+
 
     public double getVirtualMouseX()
     {
@@ -396,6 +405,22 @@ public class ControllerInput
 
         event.getMovementInput().sneak = sneaking;
 
+
+
+        if(keyboardSprinting && !mc.gameSettings.keyBindSprint.isKeyDown())
+        {
+            sprinting = false;
+            keyboardSprinting = false;
+        }
+
+        if(mc.gameSettings.keyBindSprint.isKeyDown())
+        {
+            sprinting = true;
+            keyboardSprinting = true;
+        }
+
+        mc.player.setSprinting(sprinting);
+
         if(mc.currentScreen == null)
         {
             if(!MinecraftForge.EVENT_BUS.post(new ControllerEvent.Move(controller)))
@@ -435,6 +460,13 @@ public class ControllerInput
             {
                 event.getMovementInput().jump = true;
             }
+
+            // Held down sprint
+            if (ButtonBindings.SPRINT.isButtonDown() && !Controllable.getOptions().isToggleSprint()) {
+                player.setSprinting(true);
+            }
+
+
 
             // Reset timer if it reaches target
             if (currentAttackTimer > Controllable.getOptions().getAttackSpeed()) currentAttackTimer = 0;
@@ -490,7 +522,11 @@ public class ControllerInput
         {
             if(mc.currentScreen == null)
             {
-                if(ButtonBindings.INVENTORY.isButtonPressed())
+                if (ButtonBindings.SPRINT.isButtonPressed()) {
+                    if (Controllable.getOptions().isToggleSprint() &&  mc.player != null) {
+                        sprinting = !sprinting;
+                    }
+                }else if(ButtonBindings.INVENTORY.isButtonPressed())
                 {
                     if(mc.playerController.isRidingHorse())
                     {
