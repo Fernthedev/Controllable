@@ -8,7 +8,6 @@ import com.mrcrayfish.controllable.client.CursorType;
 import lombok.Getter;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.BooleanOption;
-import net.minecraft.client.settings.SliderMultiplierOption;
 import net.minecraft.client.settings.SliderPercentageOption;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.MathHelper;
@@ -90,10 +89,10 @@ public class ControllerOptions {
         return new TranslationTextComponent("controllable.options.deadZone.format", FORMAT.format(deadZone));
     });
 
-    public static final SliderPercentageOption ROTATION_SPEED = new ControllableSliderPercentageOption("controllable.options.rotationSpeed", 1.0, 50.0, 1.0F, gameSettings -> {
+    public static final SliderPercentageOption ROTATION_SPEED = new ControllableSliderPercentageOption("controllable.options.rotationSpeed", 1.0, 200.0, 1.0F, gameSettings -> {
         return Controllable.getOptions().rotationSpeed;
     }, (gameSettings, value) -> {
-        Controllable.getOptions().rotationSpeed = MathHelper.clamp(value, 1.0, 50.0);
+        Controllable.getOptions().rotationSpeed = MathHelper.clamp(value, 1.0, 200.0);
     }, (gameSettings, option) -> {
         double rotationSpeed = Controllable.getOptions().rotationSpeed;
         return new TranslationTextComponent("controllable.options.rotationSpeed.format", FORMAT.format(rotationSpeed));
