@@ -121,10 +121,6 @@ public class ControllerOptions {
             gameSettings -> Controllable.getOptions().toggleSprint,
             (gameSettings, aBoolean) -> Controllable.getOptions().toggleSprint = aBoolean);
 
-    public static final AbstractOption TOGGLE_SNEAK = new ControllableBooleanOption("controllable.options.toggleSneak",
-            gameSettings -> Controllable.getOptions().toggleSneak,
-            (gameSettings, aBoolean) -> Controllable.getOptions().toggleSneak = aBoolean);
-
     public static final Splitter COLON_SPLITTER = Splitter.on(':');
 
     private File optionsFile;
@@ -145,9 +141,6 @@ public class ControllerOptions {
 
     @Getter
     private boolean toggleSprint = false;
-
-    @Getter
-    private boolean toggleSneak = false;
 
     public ControllerOptions(File dataDir) {
         this.optionsFile = new File(dataDir, "controllable-options.txt");
@@ -213,6 +206,9 @@ public class ControllerOptions {
                         case "attackSpeed":
                             this.attackSpeed = Integer.parseInt(value);
                             break;
+                        case "toggleSprint":
+                            this.toggleSprint = Boolean.parseBoolean(value);
+                            break;
                     }
                 } catch (Exception e) {
                     Controllable.LOGGER.warn("Skipping bad option: {}:{}", key, value);
@@ -238,6 +234,7 @@ public class ControllerOptions {
             writer.println("rotationSpeed:" + FORMAT.format(this.rotationSpeed));
             writer.println("mouseSpeed:" + FORMAT.format(this.mouseSpeed));
             writer.println("attackSpeed:" + FORMAT.format(this.attackSpeed));
+            writer.println("toggleSprint:" + FORMAT.format(this.toggleSprint));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
