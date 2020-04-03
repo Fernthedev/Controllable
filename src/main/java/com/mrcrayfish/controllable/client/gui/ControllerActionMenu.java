@@ -21,12 +21,14 @@ public class ControllerActionMenu extends ControlsScreen {
     public ControllerActionList.KeyEntry entry;
     public ButtonBinding controllerButtonId;
     public String action;
+    private Screen parentScreen;
 
     private ControllerActionList buttonActionList;
     private Button buttonReset;
 
     public ControllerActionMenu(Screen screen, GameSettings settings) {
         super(screen, settings);
+        this.parentScreen = screen;
         MinecraftForge.EVENT_BUS.register(this);
     }
 
