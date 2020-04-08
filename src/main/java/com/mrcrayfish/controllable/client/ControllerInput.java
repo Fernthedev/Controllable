@@ -3,9 +3,9 @@ package com.mrcrayfish.controllable.client;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.Reference;
 import com.mrcrayfish.controllable.client.gui.ControllerLayoutScreen;
+import com.mrcrayfish.controllable.client.settings.ControllerOptions;
 import com.mrcrayfish.controllable.event.ControllerEvent;
 import com.mrcrayfish.controllable.registry.ButtonRegistry;
-import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.IngameMenuScreen;
@@ -14,15 +14,18 @@ import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.screen.inventory.CreativeScreen;
 import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 import net.minecraft.client.util.NativeUtil;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.monster.MonsterEntity;
+import net.minecraft.entity.passive.AmbientEntity;
+import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.network.play.client.CPlayerDiggingPacket;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.ForgeHooksClient;
@@ -54,10 +57,8 @@ public class ControllerInput
     private boolean keyboardSneaking = false;
     private boolean keyboardSprinting = false;
 
-    @Getter
     private boolean sneaking = false;
 
-    @Getter
     private boolean sprinting = false;
 
     private boolean isFlying = false;
@@ -80,7 +81,6 @@ public class ControllerInput
 
     private int dropCounter = -1;
 
-
     public double getVirtualMouseX()
     {
         return virtualMouseX;
@@ -95,7 +95,6 @@ public class ControllerInput
     {
         return lastUse;
     }
-    
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event)
@@ -291,6 +290,118 @@ public class ControllerInput
         }
     }
 
+    private Vec2f handleAimAssist(float targetYaw, float targetPitch)
+    {
+        Minecraft mc = Minecraft.getInstance();
+        PlayerEntity player = mc.player;
+
+        if(player == null)
+        {
+            return new Vec2f(targetPitch, targetYaw);
+        }
+
+        float resultPitch = targetPitch;
+        float resultYaw = targetYaw;
+
+        if(mc.objectMouseOver != null && mc.objectMouseOver.getType() == RayTraceResult.Type.ENTITY)
+        {
+            EntityRayTraceResult entityRayTraceResult = (EntityRayTraceResult) mc.objectMouseOver;
+            Entity entity = entityRayTraceResult.getEntity();
+
+            ControllerOptions.AimAssistMode mode = getMode(entity);
+
+            if(entity instanceof LivingEntity && mode != null && mode != ControllerOptions.AimAssistMode.NONE) // Avoid checking entities such as drops or tnt
+            {
+
+                Vec3d rayHit = entityRayTraceResult.getHitVec(); // Look where the raytrace of the player's view hits
+
+                Vec3d targetCoords = entity.getBoundingBox().getCenter(); // Get the center of the entity which is a good starting point
+
+                double assistIntensity = (Controllable.getOptions().getAimAssistIntensity() / 100.0);
+
+                if(mode.sensitivity())
+                {
+                    resultYaw *= (float) (0.30 * assistIntensity); // Slows the sensitivity to stop slingshotting the bounding box. It can still be slingshotted though if attempted.
+                    resultPitch *= (float) (0.12 * assistIntensity); // Slows the sensitivity to stop slingshotting the bounding box. It can still be slingshotted though if attempted.
+                }
+
+                if(mode.aim())
+                {
+                    Vec3d targetXCoords = new Vec3d(targetCoords.x, 0, 0); // To accurately measure distance
+                    Vec3d rayXCoords = new Vec3d(rayHit.x, 0, 0); // Measure accurately distance
+
+                    Vec3d targetYCoords = new Vec3d(0, targetCoords.y, 0); // Measure accurately distance
+                    Vec3d rayYCoords = new Vec3d(0, rayHit.y, 0); // Measure accurately distance
+
+                    double xDir = changeYDirection(rayHit.x, entity.getBoundingBox().minX, entity.getBoundingBox().maxX, 0.5);
+                    // Only modify X if it's leaving box
+                    if(xDir != 0)
+                    {
+                        resultYaw = (float) (toTarget(resultYaw, (float) ((targetXCoords.distanceTo(rayXCoords) - entity.getBoundingBox().getXSize() / 4) * xDir /* interpolateNegatives(playerLookVec.getX()))*/), (float) targetXCoords.x < rayXCoords.x, 18.0 * assistIntensity) * 0.5);
+
+                        // TODO: Apply rotation to assist since it does not follow the boundary correctly to the orientation of the camera.
+                    }
+
+                    double yDir = changeYDirection(rayHit.y, entity.getBoundingBox().minY, entity.getBoundingBox().maxY, 0.25);
+                    // Only modify Y level if it's about to leave box
+                    if(yDir != 0)
+                    {
+                        resultPitch = toTarget(resultPitch, (float) (targetYCoords.distanceTo(rayYCoords) * yDir), true, 5.0 * assistIntensity);
+
+                    }
+                }
+            }
+        }
+
+        return new Vec2f(resultPitch, resultYaw);
+    }
+
+    private ControllerOptions.AimAssistMode getMode(Entity entity)
+    {
+        if(entity instanceof PlayerEntity)
+        {
+            return Controllable.getOptions().getPlayerAimMode();
+        }
+
+        if(entity instanceof MonsterEntity)
+        {
+            return Controllable.getOptions().getHostileAimMode();
+        }
+
+        if(entity instanceof AnimalEntity || entity instanceof AmbientEntity)
+        {
+            return Controllable.getOptions().getAnimalAimMode();
+        }
+
+        return null;
+    }
+
+    private float toTarget(float current, float distance, boolean direction, double multiplier)
+    {
+        if(direction)
+        {
+            return (float) ((current - distance) * multiplier);
+        }
+        else
+        {
+            return (float) ((current + distance) * multiplier);
+        }
+    }
+
+    private double changeYDirection(double hit, double min, double max, double offset)
+    {
+        if(hit <= min + offset)
+        {
+            return 1;
+        }
+        else if(hit >= max - offset)
+        {
+            return -1;
+        }
+        else
+            return 0;
+    }
+
     @SubscribeEvent
     public void onRender(TickEvent.ClientTickEvent event)
     {
@@ -338,6 +449,17 @@ public class ControllerInput
                     targetPitch = rotationPitch;
                 }
             }
+
+            //            if (targetYaw != 0 || targetPitch != 0)
+            //            {
+            if(Controllable.getOptions().isAimAssist())
+            {
+                Vec2f aimAssist = handleAimAssist(targetYaw, targetPitch);
+
+                targetPitch = aimAssist.x;
+                targetYaw = aimAssist.y;
+            }
+            //            }
         }
 
         if(mc.currentScreen == null)
@@ -351,7 +473,7 @@ public class ControllerInput
 
         if(dropCounter > 20)
         {
-            if (!mc.player.isSpectator())
+            if(!mc.player.isSpectator())
             {
                 mc.player.dropItem(true);
             }
@@ -359,7 +481,7 @@ public class ControllerInput
         }
         else if(dropCounter > 0 && !ButtonRegistry.ButtonActions.DROP_ITEM.getButton().isButtonDown())
         {
-            if (!mc.player.isSpectator())
+            if(!mc.player.isSpectator())
             {
                 mc.player.dropItem(false);
             }
@@ -407,14 +529,16 @@ public class ControllerInput
 
         event.getMovementInput().sneak = sneaking;
 
-
-        if (Controllable.getOptions().isToggleSprint()) {
-            if (keyboardSprinting && !mc.gameSettings.keyBindSprint.isKeyDown()) {
+        if(Controllable.getOptions().isToggleSprint())
+        {
+            if(keyboardSprinting && !mc.gameSettings.keyBindSprint.isKeyDown())
+            {
                 sprinting = false;
                 keyboardSprinting = false;
             }
 
-            if (mc.gameSettings.keyBindSprint.isKeyDown()) {
+            if(mc.gameSettings.keyBindSprint.isKeyDown())
+            {
                 sprinting = true;
                 keyboardSprinting = true;
             }
@@ -465,21 +589,22 @@ public class ControllerInput
             }
 
             // Held down sprint
-            if (ButtonRegistry.ButtonActions.SPRINT.getButton().isButtonDown() && !Controllable.getOptions().isToggleSprint()) {
+            if(ButtonRegistry.ButtonActions.SPRINT.getButton().isButtonDown() && !Controllable.getOptions().isToggleSprint())
+            {
                 player.setSprinting(true);
             }
 
-
-
             // Reset timer if it reaches target
-            if (currentAttackTimer > Controllable.getOptions().getAttackSpeed()) currentAttackTimer = 0;
+            if(currentAttackTimer > Controllable.getOptions().getAttackSpeed())
+                currentAttackTimer = 0;
 
             if(ButtonRegistry.ButtonActions.USE_ITEM.getButton().isButtonDown() && mc.rightClickDelayTimer == 0 && !mc.player.isHandActive())
             {
                 mc.rightClickMouse();
             }
 
-            else if (ButtonRegistry.ButtonActions.ATTACK.getButton().isButtonDown() && mc.objectMouseOver != null && mc.objectMouseOver.getType() == RayTraceResult.Type.ENTITY && currentAttackTimer == 0) {
+            else if(ButtonRegistry.ButtonActions.ATTACK.getButton().isButtonDown() && mc.objectMouseOver != null && mc.objectMouseOver.getType() == RayTraceResult.Type.ENTITY && currentAttackTimer == 0)
+            {
                 // This is to keep attacking while the button is held and staring at a mob
                 mc.clickMouse();
                 currentAttackTimer = 1;
@@ -487,16 +612,17 @@ public class ControllerInput
 
             // Keep the timer going if the first attack was registered
             // This is to avoid only increasing timer while staring at a mob.
-            if (ButtonRegistry.ButtonActions.ATTACK.getButton().isButtonDown() && currentAttackTimer > 0) {
+            if(ButtonRegistry.ButtonActions.ATTACK.getButton().isButtonDown() && currentAttackTimer > 0)
+            {
                 currentAttackTimer++;
             }
 
             // Reset timer when button is no longer held
-            if (!ButtonRegistry.ButtonActions.ATTACK.getButton().isButtonDown()) {
+            if(!ButtonRegistry.ButtonActions.ATTACK.getButton().isButtonDown())
+            {
                 currentAttackTimer = 0;
             }
         }
-
 
     }
 
@@ -525,11 +651,14 @@ public class ControllerInput
         {
             if(mc.currentScreen == null)
             {
-                if (ButtonRegistry.ButtonActions.SPRINT.getButton().isButtonPressed()) {
-                    if (Controllable.getOptions().isToggleSprint() &&  mc.player != null) {
+                if(ButtonRegistry.ButtonActions.SPRINT.getButton().isButtonPressed())
+                {
+                    if(Controllable.getOptions().isToggleSprint() && mc.player != null)
+                    {
                         sprinting = !sprinting;
                     }
-                }else if(ButtonRegistry.ButtonActions.INVENTORY.getButton().isButtonPressed())
+                }
+                else if(ButtonRegistry.ButtonActions.INVENTORY.getButton().isButtonPressed())
                 {
                     if(mc.playerController.isRidingHorse())
                     {
@@ -723,7 +852,8 @@ public class ControllerInput
         if(screen instanceof ContainerScreen)
         {
             /* Prevents cursor from moving until at least some input is detected */
-            if(!moved) return;
+            if(!moved)
+                return;
 
             Minecraft mc = Minecraft.getInstance();
             ContainerScreen guiContainer = (ContainerScreen) screen;
@@ -848,8 +978,7 @@ public class ControllerInput
 
             double finalMouseX = mouseX;
             double finalMouseY = mouseY;
-            Screen.wrapScreenError(() ->
-            {
+            Screen.wrapScreenError(() -> {
                 boolean cancelled = ForgeHooksClient.onGuiMouseClickedPre(screen, finalMouseX, finalMouseY, button);
                 if(!cancelled)
                 {
@@ -889,8 +1018,7 @@ public class ControllerInput
 
             double finalMouseX = mouseX;
             double finalMouseY = mouseY;
-            Screen.wrapScreenError(() ->
-            {
+            Screen.wrapScreenError(() -> {
                 boolean cancelled = ForgeHooksClient.onGuiMouseReleasedPre(screen, finalMouseX, finalMouseY, button);
                 if(!cancelled)
                 {
@@ -902,5 +1030,15 @@ public class ControllerInput
                 }
             }, "mouseReleased event handler", screen.getClass().getCanonicalName());
         }
+    }
+
+    public boolean isSneaking()
+    {
+        return sneaking;
+    }
+
+    public boolean isSprinting()
+    {
+        return sprinting;
     }
 }
