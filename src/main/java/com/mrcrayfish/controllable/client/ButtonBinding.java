@@ -1,6 +1,8 @@
 package com.mrcrayfish.controllable.client;
 
-import lombok.Getter;
+
+
+import com.mrcrayfish.controllable.registry.ActionData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +16,7 @@ public class ButtonBinding
 
     private int button;
 
-    @Getter
+
     private final int defaultId;
 
     private boolean pressed;
@@ -93,7 +95,19 @@ public class ButtonBinding
         return button < 0 || button > Buttons.LENGTH;
     }
 
-    public boolean conflicts(ButtonBinding buttonBinding) {
+    /**
+     *
+     * @param buttonBinding The button conflicting with this.
+     * @param actionData The action associated with the button. Used to check if the action is specifically compliant with this button.
+     *                   Meant to be used for custom implementations of {@link ButtonBinding}.
+     * @return
+     */
+    public boolean conflicts(ButtonBinding buttonBinding, ActionData actionData) {
         return button == buttonBinding.getButtonId();
+    }
+
+    public int getDefaultId()
+    {
+        return defaultId;
     }
 }
