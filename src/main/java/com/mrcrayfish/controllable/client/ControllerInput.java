@@ -421,9 +421,9 @@ public class ControllerInput
      * @return
      */
     protected float getTargetPitch(Entity target, PlayerEntity playerEntity) {
-        double xDiff = target.getPosX() - playerEntity.getPosX();
-        double yDiff = getEyePosition(target) - playerEntity.func_226280_cw_();
-        double zDiff = target.getPosZ() - playerEntity.getPosZ();
+        double xDiff = target.posX - playerEntity.posX;
+        double yDiff = getEyePosition(target) - (playerEntity.posY + playerEntity.getEyeHeight());
+        double zDiff = target.posZ - playerEntity.posZ;
         double distance = MathHelper.sqrt(xDiff * xDiff + zDiff * zDiff);
         return (float) (-(MathHelper.atan2(yDiff, distance) * (double)(180F / (float)Math.PI)));
     }
@@ -435,8 +435,8 @@ public class ControllerInput
      * @return
      */
     protected float getTargetYaw(Entity target, PlayerEntity playerEntity) {
-        double diffX = target.getPosX() - playerEntity.getPosX();
-        double diffZ = target.getPosZ() - playerEntity.getPosZ();
+        double diffX = target.posX - playerEntity.posX;
+        double diffZ = target.posZ - playerEntity.posZ;
         return (float)(MathHelper.atan2(diffZ, diffX) * (double)(180F / (float)Math.PI)) - 90.0F;
     }
 
@@ -446,7 +446,7 @@ public class ControllerInput
      * @return
      */
     private static double getEyePosition(Entity entity) {
-        return entity instanceof LivingEntity ? entity.func_226280_cw_() : (entity.getBoundingBox().minY + entity.getBoundingBox().maxY) / 2.0D;
+        return entity instanceof LivingEntity ? (entity.posY + entity.getEyeHeight()) : (entity.getBoundingBox().minY + entity.getBoundingBox().maxY) / 2.0D;
     }
 
     private ControllerOptions.AimAssistMode getMode(Entity entity)
