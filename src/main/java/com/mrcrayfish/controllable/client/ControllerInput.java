@@ -8,11 +8,13 @@ import com.mrcrayfish.controllable.event.ControllerEvent;
 import com.mrcrayfish.controllable.registry.ButtonRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.IGuiEventListener;
+import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.gui.screen.IngameMenuScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.screen.inventory.CreativeScreen;
 import net.minecraft.client.gui.screen.inventory.InventoryScreen;
+import net.minecraft.client.util.MouseSmoother;
 import net.minecraft.client.util.NativeUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -30,6 +32,7 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.network.play.client.CPlayerDiggingPacket;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.ScreenShotHelper;
 import net.minecraft.util.math.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -67,6 +70,9 @@ public class ControllerInput
 
     private boolean sprinting = false;
 
+    private final MouseSmoother xSmoother = new MouseSmoother();
+    private final MouseSmoother ySmoother = new MouseSmoother();
+
     private boolean isFlying = false;
     private boolean nearSlot = false;
     private double virtualMouseX;
@@ -93,6 +99,7 @@ public class ControllerInput
     private int dropCounter = -1;
     private boolean mouseMoved;
     private boolean controllerInput;
+    private double lastLookTime = Double.MIN_VALUE;
 
     public double getVirtualMouseX()
     {
@@ -108,7 +115,7 @@ public class ControllerInput
     {
         return lastUse;
     }
-
+    
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event)
@@ -304,7 +311,7 @@ public class ControllerInput
         }
     }
 
-    private Vec2f handleAimAssist(float targetYaw, float targetPitch)
+    private Vec2f handleAimAssist(float yaw, float pitch)
     {
         Minecraft mc = Minecraft.getInstance();
         PlayerEntity player = mc.player;
@@ -313,29 +320,27 @@ public class ControllerInput
 
         if(player == null || controller == null || mouseMoved)
         {
-            return new Vec2f(targetPitch, targetYaw);
+            return new Vec2f(pitch, yaw);
         }
 
-        float resultPitch = targetPitch;
-        float resultYaw = targetYaw;
+        float resultPitch = pitch;
+        float resultYaw = yaw;
 
         boolean entityInRange = mc.objectMouseOver != null && mc.objectMouseOver.getType() == RayTraceResult.Type.ENTITY; // Is true if an entity is in the crosshair range
 
-        boolean targetInRange = false; // Is true if the target is in the crosshair raytrace
+        boolean targetBoxInCrosshair = false; // Is true if the target is in the crosshair raytrace
 
         // Change aim assist target if new one in sight
         if (entityInRange) {
             EntityRayTraceResult entityRayTraceResult = (EntityRayTraceResult) mc.objectMouseOver;
 
-
-
             if (entityRayTraceResult.getEntity() instanceof LivingEntity)
             {
                 ControllerOptions.AimAssistMode mode = getMode(entityRayTraceResult.getEntity());
-                if(mode != null && mode.aim())
+                if(mode != null && mode.on())
                 {
                     aimAssistTarget = entityRayTraceResult.getEntity();
-                    targetInRange = true;
+                    targetBoxInCrosshair = true;
                 }
             }
         }
@@ -351,23 +356,48 @@ public class ControllerInput
 
             ControllerOptions.AimAssistMode mode = getMode(aimAssistTarget); // Aim assist mode
 
-            if(mode != null && mode != ControllerOptions.AimAssistMode.NONE && aimAssistTargetDistance <= 5.2 && player.canEntityBeSeen(aimAssistTarget)) // Avoid checking entities such as drops or tnt
+            if(mode != null && mode != ControllerOptions.AimAssistMode.NONE && aimAssistTargetDistance <= 5.2 &&
+                    player.canEntityBeSeen(aimAssistTarget)) // Avoid checking entities such as drops or tnt
             {
 
                 // intensity as percent decimal
                 float assistIntensity = Controllable.getOptions().getAimAssistIntensity() / 100.0f;
 
+                // Get yaw and pitch which will make player look at target
+                float targetAimYaw = MathHelper.wrapDegrees(getTargetYaw(aimAssistTarget, player));
+                float targetAimPitch = MathHelper.wrapDegrees(getTargetPitch(aimAssistTarget, player));
+
+                // The result pitch and yaw which will make aim assist work as an assist rather force crosshair into player
+                float calcPitch = (float) (MathHelper.wrapSubtractDegrees(player.rotationPitch, targetAimPitch) * 0.38 * assistIntensity);
+                float calcYaw = (float) (MathHelper.wrapSubtractDegrees(player.rotationYaw, targetAimYaw) * 0.46 * assistIntensity);
+
+                // Inverted intensity
+                float invertedIntensity = (float) (1.0 - assistIntensity); // 1.0 - 1.0 max intensity // 1.0 - 0 = the least intensity
+
+                // Maximum distance of pitch and yaw which will trigger range
+                float yawMaximumDistance = 9.2f;
+                float pitchMaximumDistance = 7.8f;
+
+                yawMaximumDistance -= yawMaximumDistance * invertedIntensity; // Adjust distance accordingly to assist intensity
+                pitchMaximumDistance -= pitchMaximumDistance * invertedIntensity;  // Adjust distance accordingly to assist intensity
+
+                boolean targetInRange = Math.abs(calcYaw) <= yawMaximumDistance && Math.abs(calcPitch) <= pitchMaximumDistance;
+                boolean targetInRangeHigher = Math.abs(calcYaw) <= yawMaximumDistance * 1.1f && Math.abs(calcPitch) <= pitchMaximumDistance * 1.2f;
+
+
                 // Lower sensitivity when in bounding box
-                if(mode.sensitivity() && targetInRange && controllerInput)
+                if(mode.sensitivity() && controllerInput && targetInRangeHigher)
                 {
 
-                    float invertedIntensity = 1.0f - assistIntensity; // 1.0 - 1.0 max intensity // 1.0 - 0 = the least intensity
+                    double multiplier = 0.85;
+//
+                    if (!targetBoxInCrosshair)
+                        multiplier *= 0.09 + (0.0065 * (Math.abs(MathHelper.wrapSubtractDegrees((float) (yaw * multiplier), targetAimYaw) + MathHelper.wrapSubtractDegrees((float) (targetAimPitch * multiplier), targetAimPitch))));
 
-                    if (invertedIntensity == 0) invertedIntensity = 0.009f;
 
-                    double multiplier = 0.90 * (invertedIntensity);
+                    if (mode.aim() && !targetInRange && targetInRangeHigher) multiplier *= 1.125;
 
-
+                    if (targetBoxInCrosshair) multiplier *= (invertedIntensity * 2) + 0.08;
 
                     resultYaw *= (float) (multiplier); // Slows the sensitivity to stop slingshotting the bounding box. It can still be slingshotted though if attempted.
                     resultPitch *= (float) (multiplier); // Slows the sensitivity to stop slingshotting the bounding box. It can still be slingshotted though if attempted.
@@ -383,38 +413,27 @@ public class ControllerInput
 
                 if(mode.aim() && !aimAssistIgnore)
                 {
-                    float yaw = MathHelper.wrapDegrees(getTargetYaw(aimAssistTarget, player));
-                    float pitch = MathHelper.wrapDegrees(getTargetPitch(aimAssistTarget, player));
 
-                    float calcPitch = (float) (MathHelper.wrapSubtractDegrees(player.rotationPitch, pitch) * 0.38 * assistIntensity);
-                    float calcYaw = (float) (MathHelper.wrapSubtractDegrees(player.rotationYaw, yaw) * 0.46 * assistIntensity);
-
-                    float invertedIntensity = (float) (1.0 - assistIntensity); // 1.0 - 1.0 max intensity // 1.0 - 0 = the least intensity
-
-                    float yawDistance = 7.2f;
-                    yawDistance -= yawDistance * invertedIntensity; // Adjust distance accordingly to assist intensity
-                    float pitchDistance = 5.8f;
-                    pitchDistance -= pitchDistance * invertedIntensity;  // Adjust distance accordingly to assist intensity
+                    // Lower aim assist if looking at entity
+                    if (targetBoxInCrosshair)
+                    {
+                        calcYaw *= 0.85;
+                        calcPitch *= 0.9;
+                    }
 
                     // Only track when entity is in view
-                    if (Math.abs(calcYaw) <= yawDistance && Math.abs(calcPitch) <= pitchDistance) {
+                    if (targetInRange) {
 
-                        if (Math.abs(calcYaw) <= yawDistance)
+                        if (Math.abs(calcYaw) <= yawMaximumDistance)
                         {
                             resultYaw += calcYaw;
                         }
 
-                        if (Math.abs(calcPitch) <= pitchDistance)
+                        if (Math.abs(calcPitch) <= pitchMaximumDistance)
                         {
                             resultPitch += calcPitch;
                         }
                     }
-
-
-                    //                    if(MathHelper.normalizeAngle(calcPitch))
-                    //                    {
-                    //
-                    //                    }
                 }
             }
         }
@@ -529,29 +548,32 @@ public class ControllerInput
         if(mc.currentScreen == null)
         {
 
+            double pitchSpeed = Controllable.getOptions().getRotationSpeed();
+            double yawSpeed = Controllable.getOptions().getRotationSpeed();
+
             /* Handles rotating the yaw of player */
             if(Math.abs(controller.getRThumbStickXValue()) >= deadZone)
             {
                 lastUse = 100;
-                double rotationSpeed = Controllable.getOptions().getRotationSpeed();
-                ControllerEvent.Turn turnEvent = new ControllerEvent.Turn(controller, (float) rotationSpeed, (float) rotationSpeed * 0.75F);
+                ControllerEvent.Turn turnEvent = new ControllerEvent.Turn(controller, (float) yawSpeed, (float) yawSpeed * 0.75F);
                 if(!MinecraftForge.EVENT_BUS.post(turnEvent))
                 {
+                    yawSpeed = turnEvent.getYawSpeed();
                     float deadZoneTrim = (controller.getRThumbStickXValue() > 0 ? 1 : -1) * deadZone;
-                    float rotationYaw = (turnEvent.getYawSpeed() * (controller.getRThumbStickXValue() - deadZoneTrim) / (1.0F - deadZone)) * 0.33F;
-                    targetYaw = rotationYaw;
+
+                    targetYaw = (((float) yawSpeed) * (controller.getRThumbStickXValue() - deadZoneTrim) / (1.0F - deadZone)) * 0.33F;
                 }
             }
             if(Math.abs(controller.getRThumbStickYValue()) >= deadZone)
             {
                 lastUse = 100;
-                double rotationSpeed = Controllable.getOptions().getRotationSpeed();
-                ControllerEvent.Turn turnEvent = new ControllerEvent.Turn(controller, (float) rotationSpeed, (float) rotationSpeed * 0.75F);
+                ControllerEvent.Turn turnEvent = new ControllerEvent.Turn(controller, (float) pitchSpeed, (float) pitchSpeed * 0.75F);
                 if(!MinecraftForge.EVENT_BUS.post(turnEvent))
                 {
+                    pitchSpeed = turnEvent.getPitchSpeed();
                     float deadZoneTrim = (controller.getRThumbStickYValue() > 0 ? 1 : -1) * deadZone;
-                    float rotationPitch = (turnEvent.getPitchSpeed() * (controller.getRThumbStickYValue() - deadZoneTrim) / (1.0F - deadZone)) * 0.33F;
-                    targetPitch = rotationPitch;
+
+                    targetPitch = (((float) pitchSpeed) * (controller.getRThumbStickYValue() - deadZoneTrim) / (1.0F - deadZone)) * 0.33F;
                 }
             }
 
@@ -572,6 +594,21 @@ public class ControllerInput
             }
 
             //            }
+
+
+            // Smooth camera
+            if (mc.gameSettings.smoothCamera) {
+                double d0 = NativeUtil.getTime();
+                double d1 = d0 - lastLookTime;
+                lastLookTime = d0;
+
+                targetYaw = (float) this.xSmoother.smooth(targetYaw, d1);
+                targetPitch = (float) this.ySmoother.smooth(targetPitch, d1);
+            } else {
+                this.xSmoother.reset();
+                this.ySmoother.reset();
+            }
+
         }
 
         if(mc.currentScreen == null)
@@ -657,7 +694,8 @@ public class ControllerInput
 
             sprinting |= mc.gameSettings.keyBindSprint.isKeyDown();
 
-            mc.player.setSprinting(sprinting);
+            if (!mc.player.isSprinting())
+                mc.player.setSprinting(sprinting);
         }
 
         if(mc.currentScreen == null)
@@ -706,6 +744,8 @@ public class ControllerInput
                 player.setSprinting(true);
             }
 
+
+
             // Reset timer if it reaches target
             if(currentAttackTimer > Controllable.getOptions().getAttackSpeed())
                 currentAttackTimer = 0;
@@ -736,6 +776,7 @@ public class ControllerInput
             }
         }
 
+
     }
 
     public void handleButtonInput(Controller controller, int button, boolean state)
@@ -761,7 +802,14 @@ public class ControllerInput
         Minecraft mc = Minecraft.getInstance();
         if(state)
         {
-            if(mc.currentScreen == null)
+            if (ButtonRegistry.ButtonActions.SCREENSHOT.getButton().isButtonPressed())
+            {
+                ScreenShotHelper.saveScreenshot(mc.gameDir, mc.getMainWindow().getFramebufferWidth(), mc.getMainWindow().getFramebufferHeight(), mc.getFramebuffer(), (p_212449_1_) -> {
+                    mc.execute(() -> {
+                        mc.ingameGUI.getChatGUI().printChatMessage(p_212449_1_);
+                    });
+                });
+            }else if(mc.currentScreen == null)
             {
                 if(ButtonRegistry.ButtonActions.SPRINT.getButton().isButtonPressed())
                 {
@@ -836,6 +884,14 @@ public class ControllerInput
                     else if(ButtonRegistry.ButtonActions.PICK_BLOCK.getButton().isButtonPressed())
                     {
                         mc.middleClickMouse();
+                    }else if (ButtonRegistry.ButtonActions.OPEN_CHAT.getButton().isButtonPressed()) {
+                        mc.displayGuiScreen(new ChatScreen(""));
+                    }
+                    else if (ButtonRegistry.ButtonActions.OPEN_COMMAND_CHAT.getButton().isButtonPressed()) {
+                        mc.displayGuiScreen(new ChatScreen("/"));
+                    }
+                    else if (ButtonRegistry.ButtonActions.SMOOTH_CAMERA_TOGGLE.getButton().isButtonPressed()) {
+                        mc.gameSettings.smoothCamera = !mc.gameSettings.smoothCamera;
                     }
                 }
             }
