@@ -598,7 +598,7 @@ public class ControllerInput
 
             // Smooth camera
             if (mc.gameSettings.smoothCamera) {
-                double d0 = NativeUtil.getTime();
+                double d0 = NativeUtil.func_216394_b();
                 double d1 = d0 - lastLookTime;
                 lastLookTime = d0;
 
@@ -804,7 +804,7 @@ public class ControllerInput
         {
             if (ButtonRegistry.ButtonActions.SCREENSHOT.getButton().isButtonPressed())
             {
-                ScreenShotHelper.saveScreenshot(mc.gameDir, mc.getMainWindow().getFramebufferWidth(), mc.getMainWindow().getFramebufferHeight(), mc.getFramebuffer(), (p_212449_1_) -> {
+                ScreenShotHelper.saveScreenshot(mc.gameDir, mc.mainWindow.getFramebufferWidth(), mc.mainWindow.getFramebufferHeight(), mc.getFramebuffer(), (p_212449_1_) -> {
                     mc.execute(() -> {
                         mc.ingameGUI.getChatGUI().printChatMessage(p_212449_1_);
                     });
