@@ -7,11 +7,13 @@ import com.mrcrayfish.controllable.event.ControllerEvent;
 import com.mrcrayfish.controllable.registry.ButtonRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.IGuiEventListener;
+import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.gui.screen.IngameMenuScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.screen.inventory.CreativeScreen;
 import net.minecraft.client.gui.screen.inventory.InventoryScreen;
+import net.minecraft.client.util.MouseSmoother;
 import net.minecraft.client.util.NativeUtil;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.container.Slot;
@@ -19,6 +21,7 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.network.play.client.CPlayerDiggingPacket;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.ScreenShotHelper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
@@ -57,7 +60,8 @@ public class ControllerInput
 
     private boolean sprinting = false;
 
-
+    private final MouseSmoother xSmoother = new MouseSmoother();
+    private final MouseSmoother ySmoother = new MouseSmoother();
 
     private boolean isFlying = false;
     private boolean nearSlot = false;
@@ -78,7 +82,7 @@ public class ControllerInput
     private int currentAttackTimer;
 
     private int dropCounter = -1;
-
+    private double lastLookTime = Double.MIN_VALUE;
 
     public double getVirtualMouseX()
     {
@@ -312,31 +316,49 @@ public class ControllerInput
         {
             float deadZone = (float) Controllable.getOptions().getDeadZone();
 
+            double pitchSpeed = Controllable.getOptions().getRotationSpeed();
+            double yawSpeed = Controllable.getOptions().getRotationSpeed();
+
             /* Handles rotating the yaw of player */
             if(Math.abs(controller.getRThumbStickXValue()) >= deadZone)
             {
                 lastUse = 100;
-                double rotationSpeed = Controllable.getOptions().getRotationSpeed();
-                ControllerEvent.Turn turnEvent = new ControllerEvent.Turn(controller, (float) rotationSpeed, (float) rotationSpeed * 0.75F);
+                ControllerEvent.Turn turnEvent = new ControllerEvent.Turn(controller, (float) yawSpeed, (float) yawSpeed * 0.75F);
                 if(!MinecraftForge.EVENT_BUS.post(turnEvent))
                 {
+                    yawSpeed = turnEvent.getYawSpeed();
                     float deadZoneTrim = (controller.getRThumbStickXValue() > 0 ? 1 : -1) * deadZone;
-                    float rotationYaw = (turnEvent.getYawSpeed() * (controller.getRThumbStickXValue() - deadZoneTrim) / (1.0F - deadZone)) * 0.33F;
-                    targetYaw = rotationYaw;
+
+                    targetYaw = (((float) yawSpeed) * (controller.getRThumbStickXValue() - deadZoneTrim) / (1.0F - deadZone)) * 0.33F;
                 }
             }
             if(Math.abs(controller.getRThumbStickYValue()) >= deadZone)
             {
                 lastUse = 100;
-                double rotationSpeed = Controllable.getOptions().getRotationSpeed();
-                ControllerEvent.Turn turnEvent = new ControllerEvent.Turn(controller, (float) rotationSpeed, (float) rotationSpeed * 0.75F);
+                ControllerEvent.Turn turnEvent = new ControllerEvent.Turn(controller, (float) pitchSpeed, (float) pitchSpeed * 0.75F);
                 if(!MinecraftForge.EVENT_BUS.post(turnEvent))
                 {
+                    pitchSpeed = turnEvent.getPitchSpeed();
                     float deadZoneTrim = (controller.getRThumbStickYValue() > 0 ? 1 : -1) * deadZone;
-                    float rotationPitch = (turnEvent.getPitchSpeed() * (controller.getRThumbStickYValue() - deadZoneTrim) / (1.0F - deadZone)) * 0.33F;
-                    targetPitch = rotationPitch;
+
+                    targetPitch = (((float) pitchSpeed) * (controller.getRThumbStickYValue() - deadZoneTrim) / (1.0F - deadZone)) * 0.33F;
                 }
             }
+
+
+            // Smooth camera
+            if (mc.gameSettings.smoothCamera) {
+                double d0 = NativeUtil.getTime();
+                double d1 = d0 - lastLookTime;
+                lastLookTime = d0;
+
+                targetYaw = (float) this.xSmoother.smooth(targetYaw, d1);
+                targetPitch = (float) this.ySmoother.smooth(targetPitch, d1);
+            } else {
+                this.xSmoother.reset();
+                this.ySmoother.reset();
+            }
+
         }
 
         if(mc.currentScreen == null)
@@ -418,9 +440,12 @@ public class ControllerInput
                 keyboardSprinting = true;
             }
 
+
+
             sprinting |= mc.gameSettings.keyBindSprint.isKeyDown();
 
-            mc.player.setSprinting(sprinting);
+            if (!mc.player.isSprinting())
+                mc.player.setSprinting(sprinting);
         }
 
         if(mc.currentScreen == null)
@@ -522,7 +547,14 @@ public class ControllerInput
         Minecraft mc = Minecraft.getInstance();
         if(state)
         {
-            if(mc.currentScreen == null)
+            if (ButtonRegistry.ButtonActions.SCREENSHOT.getButton().isButtonPressed())
+            {
+                ScreenShotHelper.saveScreenshot(mc.gameDir, mc.getMainWindow().getFramebufferWidth(), mc.getMainWindow().getFramebufferHeight(), mc.getFramebuffer(), (p_212449_1_) -> {
+                    mc.execute(() -> {
+                        mc.ingameGUI.getChatGUI().printChatMessage(p_212449_1_);
+                    });
+                });
+            }else if(mc.currentScreen == null)
             {
                 if (ButtonRegistry.ButtonActions.SPRINT.getButton().isButtonPressed()) {
                     if (Controllable.getOptions().isToggleSprint() &&  mc.player != null) {
@@ -594,6 +626,14 @@ public class ControllerInput
                     else if(ButtonRegistry.ButtonActions.PICK_BLOCK.getButton().isButtonPressed())
                     {
                         mc.middleClickMouse();
+                    }else if (ButtonRegistry.ButtonActions.OPEN_CHAT.getButton().isButtonPressed()) {
+                        mc.displayGuiScreen(new ChatScreen(""));
+                    }
+                    else if (ButtonRegistry.ButtonActions.OPEN_COMMAND_CHAT.getButton().isButtonPressed()) {
+                        mc.displayGuiScreen(new ChatScreen("/"));
+                    }
+                    else if (ButtonRegistry.ButtonActions.SMOOTH_CAMERA_TOGGLE.getButton().isButtonPressed()) {
+                        mc.gameSettings.smoothCamera = !mc.gameSettings.smoothCamera;
                     }
                 }
             }
@@ -606,6 +646,8 @@ public class ControllerInput
                         mc.player.closeScreen();
                     }
                 }
+
+
                 else if(ButtonRegistry.ButtonActions.SCROLL_RIGHT.getButton().isButtonPressed())
                 {
                     if(mc.currentScreen instanceof CreativeScreen)
