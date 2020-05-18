@@ -373,9 +373,17 @@ public class ControllerInput
             }
         }
 
+        // intensity as percent decimal
+        float assistIntensity = Controllable.getOptions().getAimAssistIntensity() / 100.0f;
+
+        // Inverted intensity
+        float invertedIntensity = (float) (1.0 - assistIntensity); // 1.0 - 1.0 max intensity // 1.0 - 0 = the least intensity
+
+        float minDistRequired = 6.5f * assistIntensity;
+
         if (aimAssistTarget == null || // Avoid null pointers
                 !aimAssistTarget.isAlive() ||
-                aimAssistTarget.getDistance(player) >= 5.9 // A little higher than 5 to handle when it gets farther
+                aimAssistTarget.getDistance(player) >= minDistRequired // A little higher than 5 to handle when it gets farther
         ) aimAssistTarget = null; // Remove target when it's out of range
 
         if(aimAssistTarget != null && aimAssistTarget.isAlive())
@@ -384,12 +392,11 @@ public class ControllerInput
 
             ControllerOptions.AimAssistMode mode = getMode(aimAssistTarget); // Aim assist mode
 
-            if(mode != null && mode != ControllerOptions.AimAssistMode.NONE && aimAssistTargetDistance <= 5.2 &&
+            if(mode != null && mode != ControllerOptions.AimAssistMode.NONE &&
                     player.canEntityBeSeen(aimAssistTarget)) // Avoid checking entities such as drops or tnt
             {
 
-                // intensity as percent decimal
-                float assistIntensity = Controllable.getOptions().getAimAssistIntensity() / 100.0f;
+
 
                 // Get yaw and pitch which will make player look at target
                 float targetAimYaw = MathHelper.wrapDegrees(getTargetYaw(aimAssistTarget, player));
@@ -399,39 +406,41 @@ public class ControllerInput
                 float calcPitch = (float) (MathHelper.wrapSubtractDegrees(player.rotationPitch, targetAimPitch) * 0.38 * assistIntensity);
                 float calcYaw = (float) (MathHelper.wrapSubtractDegrees(player.rotationYaw, targetAimYaw) * 0.46 * assistIntensity);
 
-                // Inverted intensity
-                float invertedIntensity = (float) (1.0 - assistIntensity); // 1.0 - 1.0 max intensity // 1.0 - 0 = the least intensity
 
                 // Maximum distance of pitch and yaw which will trigger range
-                float yawMaximumDistance = 9.2f;
-                float pitchMaximumDistance = 7.8f;
+                float yawMaximumDistance = 3.2f;
+                float pitchMaximumDistance = 4.8f;
 
                 yawMaximumDistance -= yawMaximumDistance * invertedIntensity; // Adjust distance accordingly to assist intensity
                 pitchMaximumDistance -= pitchMaximumDistance * invertedIntensity;  // Adjust distance accordingly to assist intensity
 
+                float yawMaximumDistanceHigher   = yawMaximumDistance   * 1.8f;
+                float pitchMaximumDistanceHigher = pitchMaximumDistance * 2.2f;
+
                 boolean targetInRange = Math.abs(calcYaw) <= yawMaximumDistance && Math.abs(calcPitch) <= pitchMaximumDistance;
-                boolean targetInRangeHigher = Math.abs(calcYaw) <= yawMaximumDistance * 1.1f && Math.abs(calcPitch) <= pitchMaximumDistance * 1.2f;
+                boolean targetInRangeHigher = Math.abs(calcYaw) <= yawMaximumDistanceHigher && Math.abs(calcPitch) <= pitchMaximumDistanceHigher;
 
 
                 // Lower sensitivity when in bounding box
-                if(mode.sensitivity() && controllerInput && targetInRangeHigher)
+                if(mode.sensitivity() && controllerInput && (targetInRangeHigher || targetBoxInCrosshair) && (targetBoxInCrosshair || aimAssistTargetDistance <= minDistRequired * 0.88))
                 {
 
                     double multiplier = 0.85;
 //
                     if (!targetBoxInCrosshair)
-                        multiplier *= 0.09 + (0.0065 * (Math.abs(MathHelper.wrapSubtractDegrees((float) (yaw * multiplier), targetAimYaw) + MathHelper.wrapSubtractDegrees((float) (targetAimPitch * multiplier), targetAimPitch))));
+                        multiplier *= 0.09 + (
+                                0.0045 *
+                                        (Math.abs(MathHelper.wrapSubtractDegrees((float) (yaw * multiplier), targetAimYaw) + MathHelper.wrapSubtractDegrees((float) (targetAimPitch * multiplier), targetAimPitch))));
 
 
-                    if (mode.aim() && !targetInRange && targetInRangeHigher) multiplier *= 1.125;
+                    if (mode.aim() && !targetInRange) multiplier *= 1.425; // Allow the player to escape aim assist more easily
 
-                    if (targetBoxInCrosshair) multiplier *= (invertedIntensity * 2) + 0.08;
+
+                    if (targetBoxInCrosshair) multiplier *= invertedIntensity * (mode.aim() ? 0.95 : 0.6) + 0.08;
 
                     resultYaw *= (float) (multiplier); // Slows the sensitivity to stop slingshotting the bounding box. It can still be slingshotted though if attempted.
                     resultPitch *= (float) (multiplier); // Slows the sensitivity to stop slingshotting the bounding box. It can still be slingshotted though if attempted.
                 }
-
-
 
 
                 //Check if mouse moves. This is to avoid tracking an entity with a mouse as it will be considered hacks.
@@ -439,7 +448,7 @@ public class ControllerInput
                 if (controllerInput && !mouseMoved) aimAssistIgnore = false;
                 if (mouseMoved) aimAssistIgnore = true;
 
-                if(mode.aim() && !aimAssistIgnore)
+                if(mode.aim() && !aimAssistIgnore && aimAssistTargetDistance <= minDistRequired * 0.88)
                 {
 
                     // Lower aim assist if looking at entity
@@ -449,15 +458,21 @@ public class ControllerInput
                         calcPitch *= 0.9;
                     }
 
-                    // Only track when entity is in view
-                    if (targetInRange) {
+                    if (targetInRange)
+                    {
+                        calcYaw *= 0.85;
+                        calcPitch *= 0.9;
+                    }
 
-                        if (Math.abs(calcYaw) <= yawMaximumDistance)
+                    // Only track when entity is in view
+                    if (targetInRangeHigher) {
+
+                        if (Math.abs(calcYaw) <= yawMaximumDistanceHigher)
                         {
                             resultYaw += calcYaw;
                         }
 
-                        if (Math.abs(calcPitch) <= pitchMaximumDistance)
+                        if (Math.abs(calcPitch) <= pitchMaximumDistanceHigher)
                         {
                             resultPitch += calcPitch;
                         }
