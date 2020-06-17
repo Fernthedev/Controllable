@@ -49,7 +49,6 @@ import org.lwjgl.glfw.GLFW;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Objects;
 
 import static org.libsdl.SDL.SDL_CONTROLLER_BUTTON_DPAD_DOWN;
 import static org.libsdl.SDL.SDL_CONTROLLER_BUTTON_DPAD_UP;
@@ -518,7 +517,7 @@ public class ControllerInput
         {
             if (Controllable.getOptions().isIgnorePets() && entity instanceof TameableEntity) {
                 TameableEntity tameableEntity = (TameableEntity) entity;
-                if (tameableEntity.isOwner(Objects.requireNonNull(Minecraft.getInstance().player))) {
+                if (tameableEntity.getOwnerId() == Minecraft.getInstance().player.getUniqueID()) {
                     return ControllerOptions.AimAssistMode.NONE;
                 }
             }
