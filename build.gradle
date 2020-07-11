@@ -91,7 +91,6 @@ dependencies {
     }
 }
 
-
 jar {
     manifest {
         attributes([

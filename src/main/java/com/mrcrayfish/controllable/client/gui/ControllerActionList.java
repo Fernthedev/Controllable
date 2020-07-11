@@ -2,6 +2,7 @@ package com.mrcrayfish.controllable.client.gui;
 
 import com.github.fernthedev.config.common.exceptions.ConfigLoadException;
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.client.ButtonBinding;
 import com.mrcrayfish.controllable.client.Buttons;
@@ -12,9 +13,13 @@ import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.gui.widget.list.AbstractOptionList;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -66,10 +71,12 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
 
     }
 
+    @Override
     protected int getScrollbarPosition() {
         return super.getScrollbarPosition() + 15 + 20;
     }
 
+    @Override
     public int getRowWidth() {
         return super.getRowWidth() + 32;
     }
@@ -84,14 +91,16 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
             this.labelWidth = minecraft.fontRenderer.getStringWidth(this.labelText);
         }
 
-        public void render(int p_render_1_, int p_render_2_, int p_render_3_, int p_render_4_, int p_render_5_, int p_render_6_, int p_render_7_, boolean p_render_8_, float p_render_9_) {
-            minecraft.fontRenderer.drawString(this.labelText, (float)(minecraft.currentScreen.width / 2 - this.labelWidth / 2), (float)(p_render_2_ + p_render_5_ - 9 - 1), 16777215);
+        public void render(MatrixStack matrixStack, int p_render_1_, int p_render_2_, int p_render_3_, int p_render_4_, int p_render_5_, int p_render_6_, int p_render_7_, boolean p_render_8_, float p_render_9_) {
+            minecraft.fontRenderer.drawString(matrixStack, this.labelText, (float)(minecraft.currentScreen.width / 2 - this.labelWidth / 2), (float)(p_render_2_ + p_render_5_ - 9 - 1), 16777215);
         }
 
+        @Override
         public boolean changeFocus(boolean p_changeFocus_1_) {
             return false;
         }
 
+        @NotNull
         public List<? extends IGuiEventListener> children() {
             return Collections.emptyList();
         }
@@ -111,17 +120,19 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
             this.buttonBinding = buttonBinding;
             this.keyDesc = I18n.format(actionData.getActionTranslateKey());
 
-            this.btnChangeKeyBinding = new Button(0, 0, 75 + 20 /*Forge: add space*/, 20, this.keyDesc, (p_214386_2_) -> {
+            this.btnChangeKeyBinding = new Button(0, 0, 75 + 20 /*Forge: add space*/, 20, new StringTextComponent(this.keyDesc), (p_214386_2_) -> {
                 controlsScreen.controllerButtonId = this.buttonBinding;
                 controlsScreen.entry = this;
                 controlsScreen.action = action;
             }) {
-                protected String getNarrationMessage() {
-                    return I18n.format(actionData.getActionTranslateKey());
+                @NotNull
+                @Override
+                protected IFormattableTextComponent getNarrationMessage() {
+                    return new TranslationTextComponent(actionData.getActionTranslateKey());
                 }
             };
 
-            this.btnSetNone = new Button(0, 0, 40 /*Forge: add space*/, 20, I18n.format("gui.none"), (p_214386_2_) -> {
+            this.btnSetNone = new Button(0, 0, 40 /*Forge: add space*/, 20, new TranslationTextComponent("gui.none"), (p_214386_2_) -> {
                 buttonBinding.setButton(-1);
                 try {
                     ControllerProperties.saveActionRegistry();
@@ -129,12 +140,14 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
                     throw new IllegalStateException("Unable to save config", e);
                 }
             }) {
-                protected String getNarrationMessage() {
-                    return I18n.format(actionData.getActionTranslateKey());
+                @Override
+                @NotNull
+                protected IFormattableTextComponent getNarrationMessage() {
+                    return new TranslationTextComponent(actionData.getActionTranslateKey());
                 }
             };
 
-            this.btnReset = new Button(0, 0, 50, 20, I18n.format("controls.reset"), (p_214387_2_) -> {
+            this.btnReset = new Button(0, 0, 50, 20, new TranslationTextComponent("controls.reset"), (p_214387_2_) -> {
                 this.buttonBinding.resetButton();
                 try {
                     ControllerProperties.saveActionRegistry();
@@ -143,27 +156,29 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
                 }
 
             }) {
-                protected String getNarrationMessage() {
-                    return I18n.format("narrator.controls.unbound", ControllerActionList.KeyEntry.this.keyDesc);
+                @NotNull
+                @Override
+                protected IFormattableTextComponent getNarrationMessage() {
+                    return new TranslationTextComponent("narrator.controls.unbound", ControllerActionList.KeyEntry.this.keyDesc);
                 }
             };
         }
 
 
         @Override
-        public void render(int p_render_1_, int p_render_2_, int p_render_3_, int p_render_4_, int p_render_5_, int p_render_6_, int p_render_7_, boolean p_render_8_, float p_render_9_) {
+        public void render(MatrixStack matrixStack, int p_render_1_, int p_render_2_, int p_render_3_, int p_render_4_, int p_render_5_, int p_render_6_, int p_render_7_, boolean p_render_8_, float p_render_9_) {
             boolean flag = controlsScreen.controllerButtonId == this.buttonBinding;
-            minecraft.fontRenderer.drawString(this.keyDesc, (float)(p_render_3_ + 40 - maxListLabelWidth), (float)(p_render_2_ + p_render_5_ / 2 - 9 / 2), 16777215);
+            minecraft.fontRenderer.drawString(matrixStack, this.keyDesc, (float)(p_render_3_ + 40 - maxListLabelWidth), (float)(p_render_2_ + p_render_5_ / 2 - 9 / 2), 16777215);
 
             this.btnSetNone.x = p_render_3_ + 60;
             this.btnSetNone.y = p_render_2_;
             this.btnSetNone.active = !buttonBinding.isInvalid();
-            this.btnSetNone.render(p_render_6_, p_render_7_, p_render_9_);
+            this.btnSetNone.render(matrixStack, p_render_6_, p_render_7_, p_render_9_);
 
             this.btnReset.x = p_render_3_ + 190 + 20;
             this.btnReset.y = p_render_2_;
             this.btnReset.active = !buttonBinding.isDefault();
-            this.btnReset.render(p_render_6_, p_render_7_, p_render_9_);
+            this.btnReset.render(matrixStack, p_render_6_, p_render_7_, p_render_9_);
 
             this.btnChangeKeyBinding.x = p_render_3_ + 105;
             this.btnChangeKeyBinding.y = p_render_2_;
@@ -185,7 +200,7 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
                 }
             }
 
-            this.btnChangeKeyBinding.setMessage(buttonStr);
+            this.btnChangeKeyBinding.setMessage(new StringTextComponent(buttonStr));
             boolean flag1 = false;
 //            boolean keyCodeModifierConflict = true; // less severe form of conflict, like SHIFT conflicting with SHIFT+G
             if (!buttonBinding.isInvalid()) {
@@ -202,14 +217,15 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
             }
 
             if (flag) {
-                this.btnChangeKeyBinding.setMessage(TextFormatting.WHITE + "> " + TextFormatting.YELLOW + this.btnChangeKeyBinding.getMessage() + TextFormatting.WHITE + " <");
+                this.btnChangeKeyBinding.setMessage(new StringTextComponent(TextFormatting.WHITE + "> " + TextFormatting.YELLOW + this.btnChangeKeyBinding.getMessage().getString() + TextFormatting.WHITE + " <"));
             } else if (flag1) {
-                this.btnChangeKeyBinding.setMessage((TextFormatting.RED) + this.btnChangeKeyBinding.getMessage());
+                this.btnChangeKeyBinding.setMessage(new StringTextComponent((TextFormatting.RED) + this.btnChangeKeyBinding.getMessage().getString()));
             }
 
-            this.btnChangeKeyBinding.render(p_render_6_, p_render_7_, p_render_9_);
+            this.btnChangeKeyBinding.render(matrixStack, p_render_6_, p_render_7_, p_render_9_);
         }
 
+        @NotNull
         @Override
         public List<? extends IGuiEventListener> children() {
             return ImmutableList.of(this.btnChangeKeyBinding, this.btnReset);

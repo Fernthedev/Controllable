@@ -5,8 +5,8 @@ import com.google.common.base.Splitter;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.client.ControllerType;
 import com.mrcrayfish.controllable.client.CursorType;
+import net.minecraft.client.AbstractOption;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.client.settings.AbstractOption;
 import net.minecraft.client.settings.BooleanOption;
 import net.minecraft.client.settings.SliderPercentageOption;
 import net.minecraft.nbt.CompoundNBT;
@@ -108,14 +108,6 @@ public class ControllerOptions
         return new TranslationTextComponent("controllable.options.mouseSpeed.format", FORMAT.format(mouseSpeed));
     });
 
-    public static final SliderPercentageOption ATTACK_SPEED = new ControllableSliderPercentageOption("controllable.options.attackSpeed", 5, 40, 1,
-            gameSettings -> (double) Controllable.getOptions().attackSpeed,
-            (gameSettings, value) -> Controllable.getOptions().attackSpeed = (int) MathHelper.clamp(value, 5, 40),
-            (gameSettings, sliderPercentageOption) -> {
-                int attackSpeed = Controllable.getOptions().attackSpeed;
-                return I18n.format("controllable.options.attackSpeed.format", FORMAT.format(attackSpeed));
-            });
-
     public static final AbstractOption TOGGLE_SPRINT = new ControllableBooleanOption("controllable.options.toggleSprint",
             gameSettings -> Controllable.getOptions().toggleSprint,
             (gameSettings, aBoolean) -> Controllable.getOptions().toggleSprint = aBoolean);
@@ -134,7 +126,6 @@ public class ControllerOptions
     private double deadZone = 0.15;
     private double rotationSpeed = 25.0;
     private double mouseSpeed = 30.0;
-    private int attackSpeed = 5;
     private boolean toggleSprint = false;
 
 
@@ -207,9 +198,6 @@ public class ControllerOptions
                         case "mouseSpeed":
                             this.mouseSpeed = Double.parseDouble(value);
                             break;
-                        case "attackSpeed":
-                            this.attackSpeed = Integer.parseInt(value);
-                            break;
                         case "toggleSprint":
                             this.toggleSprint = Boolean.parseBoolean(value);
                             break;
@@ -243,7 +231,6 @@ public class ControllerOptions
             writer.println("deadZone:" + FORMAT.format(this.deadZone));
             writer.println("rotationSpeed:" + FORMAT.format(this.rotationSpeed));
             writer.println("mouseSpeed:" + FORMAT.format(this.mouseSpeed));
-            writer.println("attackSpeed:" + this.attackSpeed);
             writer.println("toggleSprint:" + this.toggleSprint);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -298,11 +285,6 @@ public class ControllerOptions
     public double getRotationSpeed()
     {
         return this.rotationSpeed;
-    }
-
-    public int getAttackSpeed()
-    {
-        return attackSpeed;
     }
 
     public boolean isToggleSprint()
