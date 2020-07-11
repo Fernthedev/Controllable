@@ -1,7 +1,6 @@
 package com.mrcrayfish.controllable.client;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mrcrayfish.controllable.client.gui.ControllerLayoutScreen;
 import net.minecraft.client.gui.toasts.IToast;
 import net.minecraft.client.gui.toasts.ToastGui;
@@ -28,7 +27,7 @@ public class ControllerToast implements IToast
     public Visibility func_230444_a_(MatrixStack matrixStack, ToastGui toastGui, long delta)
     {
         toastGui.getMinecraft().getTextureManager().bindTexture(TEXTURE_TOASTS);
-        RenderSystem.color3f(1.0F, 1.0F, 1.0F);
+
         toastGui.blit(matrixStack, 0, 0, 0, 32, 160, 32);
 
         toastGui.getMinecraft().getTextureManager().bindTexture(ControllerLayoutScreen.TEXTURE);

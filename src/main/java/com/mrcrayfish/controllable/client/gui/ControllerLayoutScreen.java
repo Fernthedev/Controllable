@@ -67,7 +67,7 @@ public class ControllerLayoutScreen extends Screen
     {
         this.renderBackground(matrixStack);
 
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+
         RenderSystem.enableBlend();
         Minecraft.getInstance().getTextureManager().bindTexture(TEXTURE);
         int width = 38 * 5;

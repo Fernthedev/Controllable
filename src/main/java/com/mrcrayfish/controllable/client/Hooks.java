@@ -1,7 +1,6 @@
 package com.mrcrayfish.controllable.client;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mrcrayfish.controllable.Controllable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
@@ -117,11 +116,11 @@ public class Hooks
      * Fixes selected item name rendering not being offset by console hotbar
      */
     @SuppressWarnings("unused")
-    public static void applyHotbarOffset()
+    public static void applyHotbarOffset(MatrixStack matrixStack)
     {
         if(Controllable.getOptions().useConsoleHotbar())
         {
-            RenderSystem.translated(0, -20, 0);
+            matrixStack.translate(0,0,0);
         }
     }
 }

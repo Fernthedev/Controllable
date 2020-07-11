@@ -1,7 +1,6 @@
 package com.mrcrayfish.controllable.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.client.Controller;
 import net.minecraft.client.Minecraft;
@@ -40,7 +39,6 @@ public final class ControllerEntry extends ExtendedList.AbstractListEntry<Contro
         Minecraft.getInstance().fontRenderer.drawString(matrixStack, controller.getName(), left + 20, top + 4, Color.WHITE.getRGB());
         if(controllerList.getSelected() == this)
         {
-            RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
             Minecraft.getInstance().getTextureManager().bindTexture(new ResourceLocation("textures/gui/container/beacon.png"));
             Screen.blit(matrixStack, left + 2, top + 2, 91, 224, 14, 12, 256, 256);
         }

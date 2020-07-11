@@ -1,7 +1,6 @@
 package com.mrcrayfish.controllable.client;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.Reference;
 import com.mrcrayfish.controllable.client.gui.ControllerLayoutScreen;
@@ -244,7 +243,7 @@ public class ControllerInput
                 {
                     virtualMouseX = mouseX;
                     virtualMouseY = mouseY;
-                }
+                    GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY); }
                 else
                 {
                     GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY);
@@ -258,29 +257,35 @@ public class ControllerInput
     {
         if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse() && lastUse > 0)
         {
-            RenderSystem.pushMatrix();
-            {
-                CursorType type = Controllable.getOptions().getCursorType();
-                Minecraft minecraft = event.getGui().getMinecraft();
-                if(minecraft.player == null || (minecraft.player.inventory.getItemStack().isEmpty() || type == CursorType.CONSOLE))
-                {
-                    double mouseX = (prevTargetMouseX + (targetMouseX - prevTargetMouseX) * Minecraft.getInstance().getRenderPartialTicks());
-                    double mouseY = (prevTargetMouseY + (targetMouseY - prevTargetMouseY) * Minecraft.getInstance().getRenderPartialTicks());
-                    RenderSystem.translated(mouseX / minecraft.getMainWindow().getGuiScaleFactor(), mouseY / minecraft.getMainWindow().getGuiScaleFactor(), 500);
-                    RenderSystem.color3f(1.0F, 1.0F, 1.0F);
-                    RenderSystem.disableLighting();
-                    event.getGui().getMinecraft().getTextureManager().bindTexture(CURSOR_TEXTURE);
-                    if(type == CursorType.CONSOLE)
-                    {
-                        RenderSystem.scaled(0.5, 0.5, 0.5);
-                    }
+            MatrixStack matrixStack = event.getMatrixStack();
+            matrixStack.push();
 
-                    event.getMatrixStack().push();
-                    Screen.blit(event.getMatrixStack(),-8, -8, 16, 16, nearSlot ? 16 : 0, type.ordinal() * 16, 16, 16, 32, CursorType.values().length * 16);
-                    event.getMatrixStack().pop();
+            CursorType type = Controllable.getOptions().getCursorType();
+            Minecraft minecraft = event.getGui().getMinecraft();
+            if(minecraft.player == null || (minecraft.player.inventory.getItemStack().isEmpty() || type == CursorType.CONSOLE))
+            {
+                double mouseX = (prevTargetMouseX + (targetMouseX - prevTargetMouseX) * Minecraft.getInstance().getRenderPartialTicks());
+                double mouseY = (prevTargetMouseY + (targetMouseY - prevTargetMouseY) * Minecraft.getInstance().getRenderPartialTicks());
+
+                matrixStack.translate(mouseX / minecraft.getMainWindow().getGuiScaleFactor(), mouseY / minecraft.getMainWindow().getGuiScaleFactor(), 500);
+
+                //                    IRenderTypeBuffer.Impl renderTypeBuffer = IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer());
+
+                //                    RenderSystem.color3f(1.0F, 1.0F, 1.0F);
+                //                    RenderSystem.disableLighting();
+                event.getGui().getMinecraft().getTextureManager().bindTexture(CURSOR_TEXTURE);
+
+                if(type == CursorType.CONSOLE)
+                {
+                    matrixStack.scale(0.7f, 0.7f, 0.7f);
                 }
+
+                //                    matrixStack.push();
+                Screen.blit(event.getMatrixStack(), -8, -8, 16, 16, nearSlot ? 16 : 0, type.ordinal() * 16, 16, 16, 32, CursorType.values().length * 16);
+                //                    matrixStack.pop();
             }
-            RenderSystem.popMatrix();
+            matrixStack.pop();
+            //            RenderSystem.popMatrix();
         }
     }
 
