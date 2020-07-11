@@ -1,6 +1,7 @@
 package com.mrcrayfish.controllable.client.gui;
 
 import net.minecraft.client.Minecraft;
+import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
@@ -35,10 +36,10 @@ public class ControllerSelectionScreen extends Screen
     {
         this.listControllers = new ControllerList(this.manager, this.minecraft, this.width, this.height, 32, this.height - 44, 20);
         this.children.add(this.listControllers);
-        this.btnSettings = this.addButton(new Button(this.width / 2 - 208, this.height - 32, 100, 20, I18n.format("controllable.gui.settings"), this::handleSettings));
-        this.btnRemap = this.addButton(new Button(this.width / 2 - 104, this.height - 32, 100, 20, I18n.format("controllable.gui.remap"), this::handleConfigure));
-        this.btnActionList = this.addButton(new Button(this.width / 2, this.height - 32, 100, 20, I18n.format("controllable.gui.actionList"), this::handleActionList));
-        this.btnBack = this.addButton(new Button(this.width / 2 + 104, this.height - 32, 100, 20, I18n.format("controllable.gui.back"), this::handleCancel));
+        this.btnSettings = this.addButton(new Button(this.width / 2 - 208, this.height - 32, 100, 20, new TranslationTextComponent("controllable.gui.settings"), this::handleSettings));
+        this.btnRemap = this.addButton(new Button(this.width / 2 - 104, this.height - 32, 100, 20, new TranslationTextComponent("controllable.gui.remap"), this::handleConfigure));
+        this.btnActionList = this.addButton(new Button(this.width / 2, this.height - 32, 100, 20, new TranslationTextComponent("controllable.gui.actionList"), this::handleActionList));
+        this.btnBack = this.addButton(new Button(this.width / 2 + 104, this.height - 32, 100, 20, new TranslationTextComponent("controllable.gui.back"), this::handleCancel));
 
 
 
@@ -59,12 +60,12 @@ public class ControllerSelectionScreen extends Screen
     }
 
     @Override
-    public void render(int mouseX, int mouseY, float partialTicks)
+    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks)
     {
-        this.renderBackground();
-        this.listControllers.render(mouseX, mouseY, partialTicks);
-        this.drawCenteredString(this.font, I18n.format("controllable.gui.title.select_controller"), this.width / 2, 20, 16777215);
-        super.render(mouseX, mouseY, partialTicks);
+        this.renderBackground(matrixStack);
+        this.listControllers.render(matrixStack, mouseX, mouseY, partialTicks);
+        this.drawCenteredString(matrixStack, this.font, I18n.format("controllable.gui.title.select_controller"), this.width / 2, 20, 16777215);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
     }
 
     private void handleSettings(Button button)

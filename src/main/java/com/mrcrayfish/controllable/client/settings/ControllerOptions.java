@@ -5,13 +5,14 @@ import com.google.common.base.Splitter;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.client.ControllerType;
 import com.mrcrayfish.controllable.client.CursorType;
+import net.minecraft.client.AbstractOption;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.client.settings.AbstractOption;
 import net.minecraft.client.settings.BooleanOption;
 import net.minecraft.client.settings.SliderPercentageOption;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.TranslationTextComponent;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
@@ -25,7 +26,6 @@ import java.util.List;
  */
 public class ControllerOptions
 {
-
     private static final DecimalFormat FORMAT = new DecimalFormat("0.0#");
 
     public static final BooleanOption FORCE_FEEDBACK = new ControllableBooleanOption("controllable.options.forceFeedback", gameSettings -> {
@@ -64,7 +64,7 @@ public class ControllerOptions
         Controllable.getOptions().cursorType = cursorType;
     }, (gameSettings, controllableEnumOption) -> {
         CursorType cursorType = controllableEnumOption.get(gameSettings);
-        return I18n.format("controllable.cursor." + cursorType.getName());
+        return I18n.format("controllable.cursor." + cursorType.getString());
     });
 
     public static final ControllableEnumOption<ControllerType> CONTROLLER_TYPE = new ControllableEnumOption<>("controllable.options.controllerType", ControllerType.class, gameSettings -> {
@@ -73,7 +73,7 @@ public class ControllerOptions
         Controllable.getOptions().controllerType = controllerType;
     }, (gameSettings, controllableEnumOption) -> {
         ControllerType controllerType = controllableEnumOption.get(gameSettings);
-        return I18n.format("controllable.controller." + controllerType.getName());
+        return I18n.format("controllable.controller." + controllerType.getString());
     });
 
     public static final BooleanOption INVERT_LOOK = new ControllableBooleanOption("controllable.options.invertLook", gameSettings -> {
@@ -88,7 +88,7 @@ public class ControllerOptions
         Controllable.getOptions().deadZone = MathHelper.clamp(value, 0.0, 1.0);
     }, (gameSettings, option) -> {
         double deadZone = Controllable.getOptions().deadZone;
-        return I18n.format("controllable.options.deadZone.format", FORMAT.format(deadZone));
+        return new TranslationTextComponent("controllable.options.deadZone.format", FORMAT.format(deadZone));
     });
 
     public static final SliderPercentageOption ROTATION_SPEED = new ControllableSliderPercentageOption("controllable.options.rotationSpeed", 1.0, 200.0, 1.0F, gameSettings -> {
@@ -97,7 +97,7 @@ public class ControllerOptions
         Controllable.getOptions().rotationSpeed = MathHelper.clamp(value, 1.0, 200.0);
     }, (gameSettings, option) -> {
         double rotationSpeed = Controllable.getOptions().rotationSpeed;
-        return I18n.format("controllable.options.rotationSpeed.format", FORMAT.format(rotationSpeed));
+        return new TranslationTextComponent("controllable.options.rotationSpeed.format", FORMAT.format(rotationSpeed));
     });
 
     public static final SliderPercentageOption MOUSE_SPEED = new ControllableSliderPercentageOption("controllable.options.mouseSpeed", 1.0, 50.0, 1.0F, gameSettings -> {
@@ -106,7 +106,7 @@ public class ControllerOptions
         Controllable.getOptions().mouseSpeed = MathHelper.clamp(value, 1.0, 50.0);
     }, (gameSettings, option) -> {
         double mouseSpeed = Controllable.getOptions().mouseSpeed;
-        return I18n.format("controllable.options.mouseSpeed.format", FORMAT.format(mouseSpeed));
+        return new TranslationTextComponent("controllable.options.mouseSpeed.format", FORMAT.format(mouseSpeed));
     });
 
     public static final SliderPercentageOption ATTACK_SPEED = new ControllableSliderPercentageOption("controllable.options.attackSpeed", 5, 40, 1, gameSettings -> (double) Controllable.getOptions().attackSpeed, (gameSettings, value) -> Controllable.getOptions().attackSpeed = (int) MathHelper.clamp(value, 5, 40), (gameSettings, sliderPercentageOption) -> {
@@ -154,8 +154,8 @@ public class ControllerOptions
     private double deadZone = 0.15;
     private double rotationSpeed = 25.0;
     private double mouseSpeed = 30.0;
-    private int attackSpeed = 5;
     private boolean toggleSprint = false;
+    private int attackSpeed = 5;
 
     private boolean aimAssist = true;
     private int aimAssistIntensity = 90; //Percentage
@@ -172,39 +172,29 @@ public class ControllerOptions
         this.loadOptions();
     }
 
-    private void loadOptions()
-    {
-        try
-        {
-            if(!this.optionsFile.exists())
-            {
+    private void loadOptions() {
+        try {
+            if (!this.optionsFile.exists()) {
                 return;
             }
 
             List<String> lines = IOUtils.readLines(new FileInputStream(this.optionsFile), Charsets.UTF_8);
             CompoundNBT compound = new CompoundNBT();
 
-            for(String line : lines)
-            {
-                try
-                {
+            for (String line : lines) {
+                try {
                     Iterator<String> iterator = COLON_SPLITTER.omitEmptyStrings().limit(2).split(line).iterator();
                     compound.putString(iterator.next(), iterator.next());
-                }
-                catch(Exception var10)
-                {
+                } catch (Exception var10) {
                     Controllable.LOGGER.warn("Skipping bad option: {}", line);
                 }
             }
 
-            for(String key : compound.keySet())
-            {
+            for (String key : compound.keySet()) {
                 String value = compound.getString(key);
 
-                try
-                {
-                    switch(key)
-                    {
+                try {
+                    switch (key) {
                         case "forceFeedback":
                             this.forceFeedback = Boolean.parseBoolean(value);
                             break;
@@ -238,11 +228,11 @@ public class ControllerOptions
                         case "mouseSpeed":
                             this.mouseSpeed = Double.parseDouble(value);
                             break;
-                        case "attackSpeed":
-                            this.attackSpeed = Integer.parseInt(value);
-                            break;
                         case "toggleSprint":
                             this.toggleSprint = Boolean.parseBoolean(value);
+                            break;
+                        case "attackSpeed":
+                            this.attackSpeed = Integer.parseInt(value);
                             break;
                         case "aimAssist":
                             this.aimAssist = Boolean.parseBoolean(value);
@@ -269,15 +259,11 @@ public class ControllerOptions
                             this.ignoreSameTeamFriendlyFire = Boolean.parseBoolean(value);
                             break;
                     }
-                }
-                catch(Exception e)
-                {
+                } catch (Exception e) {
                     Controllable.LOGGER.warn("Skipping bad option: {}:{}", key, value);
                 }
             }
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             Controllable.LOGGER.error("Failed to load options", e);
         }
 
@@ -292,8 +278,8 @@ public class ControllerOptions
             writer.println("renderMiniPlayer:" + this.renderMiniPlayer);
             writer.println("virtualMouse:" + this.virtualMouse);
             writer.println("consoleHotbar:" + this.consoleHotbar);
-            writer.println("cursorType:" + this.cursorType.getName());
-            writer.println("controllerType:" + this.controllerType.getName());
+            writer.println("cursorType:" + this.cursorType.getString());
+            writer.println("controllerType:" + this.controllerType.getString());
             writer.println("invertLook:" + this.invertLook);
             writer.println("deadZone:" + FORMAT.format(this.deadZone));
             writer.println("rotationSpeed:" + FORMAT.format(this.rotationSpeed));
@@ -365,11 +351,6 @@ public class ControllerOptions
         return this.rotationSpeed;
     }
 
-    public int getAttackSpeed()
-    {
-        return attackSpeed;
-    }
-
     public boolean isToggleSprint()
     {
         return toggleSprint;
@@ -380,6 +361,10 @@ public class ControllerOptions
         return this.mouseSpeed;
     }
 
+    public int getAttackSpeed()
+    {
+        return attackSpeed;
+    }
     public boolean isAimAssist()
     {
         return aimAssist;

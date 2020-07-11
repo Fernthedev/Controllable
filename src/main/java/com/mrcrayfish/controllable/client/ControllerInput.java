@@ -1,6 +1,6 @@
 package com.mrcrayfish.controllable.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.Reference;
 import com.mrcrayfish.controllable.client.gui.ControllerLayoutScreen;
@@ -275,6 +275,7 @@ public class ControllerInput
                 {
                     virtualMouseX = mouseX;
                     virtualMouseY = mouseY;
+                    GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY);
                 }
                 else
                 {
@@ -289,26 +290,35 @@ public class ControllerInput
     {
         if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse() && lastUse > 0)
         {
-            RenderSystem.pushMatrix();
+            MatrixStack matrixStack = event.getMatrixStack();
+            matrixStack.push();
+
+            CursorType type = Controllable.getOptions().getCursorType();
+            Minecraft minecraft = event.getGui().getMinecraft();
+            if(minecraft.player == null || (minecraft.player.inventory.getItemStack().isEmpty() || type == CursorType.CONSOLE))
             {
-                CursorType type = Controllable.getOptions().getCursorType();
-                Minecraft minecraft = event.getGui().getMinecraft();
-                if(minecraft.player == null || (minecraft.player.inventory.getItemStack().isEmpty() || type == CursorType.CONSOLE))
+                double mouseX = (prevTargetMouseX + (targetMouseX - prevTargetMouseX) * Minecraft.getInstance().getRenderPartialTicks());
+                double mouseY = (prevTargetMouseY + (targetMouseY - prevTargetMouseY) * Minecraft.getInstance().getRenderPartialTicks());
+
+                matrixStack.translate(mouseX / minecraft.getMainWindow().getGuiScaleFactor(), mouseY / minecraft.getMainWindow().getGuiScaleFactor(), 500);
+
+                //                    IRenderTypeBuffer.Impl renderTypeBuffer = IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer());
+
+                //                    RenderSystem.color3f(1.0F, 1.0F, 1.0F);
+                //                    RenderSystem.disableLighting();
+                event.getGui().getMinecraft().getTextureManager().bindTexture(CURSOR_TEXTURE);
+
+                if(type == CursorType.CONSOLE)
                 {
-                    double mouseX = (prevTargetMouseX + (targetMouseX - prevTargetMouseX) * Minecraft.getInstance().getRenderPartialTicks());
-                    double mouseY = (prevTargetMouseY + (targetMouseY - prevTargetMouseY) * Minecraft.getInstance().getRenderPartialTicks());
-                    RenderSystem.translated(mouseX / minecraft.getMainWindow().getGuiScaleFactor(), mouseY / minecraft.getMainWindow().getGuiScaleFactor(), 500);
-                    RenderSystem.color3f(1.0F, 1.0F, 1.0F);
-                    RenderSystem.disableLighting();
-                    event.getGui().getMinecraft().getTextureManager().bindTexture(CURSOR_TEXTURE);
-                    if(type == CursorType.CONSOLE)
-                    {
-                        RenderSystem.scaled(0.5, 0.5, 0.5);
-                    }
-                    Screen.blit(-8, -8, 16, 16, nearSlot ? 16 : 0, type.ordinal() * 16, 16, 16, 32, CursorType.values().length * 16);
+                    matrixStack.scale(0.7f, 0.7f, 0.7f);
                 }
+
+                //                    matrixStack.push();
+                Screen.blit(event.getMatrixStack(), -8, -8, 16, 16, nearSlot ? 16 : 0, type.ordinal() * 16, 16, 16, 32, CursorType.values().length * 16);
+                //                    matrixStack.pop();
             }
-            RenderSystem.popMatrix();
+            matrixStack.pop();
+            //            RenderSystem.popMatrix();
         }
     }
 
@@ -664,17 +674,17 @@ public class ControllerInput
 
         if(dropCounter > 20)
         {
-            if(!mc.player.isSpectator())
+            if (!mc.player.isSpectator())
             {
-                mc.player.func_225609_n_(true);
+                mc.player.drop(true);
             }
             dropCounter = 0;
         }
         else if(dropCounter > 0 && !ButtonRegistry.ButtonActions.DROP_ITEM.getButton().isButtonDown())
         {
-            if(!mc.player.isSpectator())
+            if (!mc.player.isSpectator())
             {
-                mc.player.func_225609_n_(false);
+                mc.player.drop(false);
             }
             dropCounter = 0;
         }
@@ -718,21 +728,20 @@ public class ControllerInput
             isFlying = false;
         }
 
-        event.getMovementInput().field_228350_h_ = sneaking;
+        event.getMovementInput().sneaking = sneaking;
 
-        if(Controllable.getOptions().isToggleSprint())
-        {
-            if(keyboardSprinting && !mc.gameSettings.keyBindSprint.isKeyDown())
-            {
+        if (Controllable.getOptions().isToggleSprint()) {
+            if (keyboardSprinting && !mc.gameSettings.keyBindSprint.isKeyDown()) {
                 sprinting = false;
                 keyboardSprinting = false;
             }
 
-            if(mc.gameSettings.keyBindSprint.isKeyDown())
-            {
+            if (mc.gameSettings.keyBindSprint.isKeyDown()) {
                 sprinting = true;
                 keyboardSprinting = true;
             }
+
+
 
             sprinting |= mc.gameSettings.keyBindSprint.isKeyDown();
 
@@ -754,7 +763,7 @@ public class ControllerInput
                     event.getMovementInput().backKeyDown = dir < 0;
                     event.getMovementInput().moveForward = dir * MathHelper.clamp((Math.abs(controller.getLThumbStickYValue()) - deadZone) / (1.0F - deadZone), 0.0F, 1.0F);
 
-                    if(event.getMovementInput().field_228350_h_)
+                    if(event.getMovementInput().sneaking)
                     {
                         event.getMovementInput().moveForward *= 0.3D;
                     }
@@ -768,7 +777,7 @@ public class ControllerInput
                     event.getMovementInput().leftKeyDown = dir > 0;
                     event.getMovementInput().moveStrafe = dir * MathHelper.clamp((Math.abs(controller.getLThumbStickXValue()) - deadZone) / (1.0F - deadZone), 0.0F, 1.0F);
 
-                    if(event.getMovementInput().field_228350_h_)
+                    if(event.getMovementInput().sneaking)
                     {
                         event.getMovementInput().moveStrafe *= 0.3D;
                     }
@@ -817,8 +826,6 @@ public class ControllerInput
                 currentAttackTimer = 0;
             }
         }
-
-
     }
 
     public void handleButtonInput(Controller controller, int button, boolean state)
@@ -898,7 +905,7 @@ public class ControllerInput
                     if(mc.player != null && !mc.player.isSpectator() && mc.getConnection() != null)
                     {
 
-                        mc.getConnection().sendPacket(new CPlayerDiggingPacket(CPlayerDiggingPacket.Action.SWAP_HELD_ITEMS, BlockPos.ZERO, Direction.DOWN));
+                        mc.getConnection().sendPacket(new CPlayerDiggingPacket(CPlayerDiggingPacket.Action.SWAP_ITEM_WITH_OFFHAND, BlockPos.ZERO, Direction.DOWN));
                     }
                 }
                 else if(ButtonRegistry.ButtonActions.TOGGLE_PERSPECTIVE.getButton().isButtonPressed() && mc.mouseHelper.isMouseGrabbed())
