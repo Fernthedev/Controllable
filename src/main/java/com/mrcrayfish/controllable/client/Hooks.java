@@ -122,7 +122,7 @@ public class Hooks
     {
         if(Controllable.getOptions().useConsoleHotbar())
         {
-            matrixStack.translate(0,0,0);
+            matrixStack.translate(0, -20, 0);
         }
     }
 }
