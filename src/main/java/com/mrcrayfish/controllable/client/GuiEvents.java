@@ -65,10 +65,10 @@ public class GuiEvents
     {
         if(Controllable.getOptions().useConsoleHotbar())
         {
-//            if(EXCLUDED_TYPES.contains(event.getType()))
-//            {
-//                return;
-//            }
+            if(EXCLUDED_TYPES.contains(event.getType()))
+            {
+                return;
+            }
 
 //            event.getMatrixStack().translate(0,-20,0);
             RenderSystem.translated(0, -20, 0);
@@ -80,10 +80,10 @@ public class GuiEvents
     {
         if(Controllable.getOptions().useConsoleHotbar())
         {
-//            if(EXCLUDED_TYPES.contains(event.getType()))
-//            {
-//                return;
-//            }
+            if(EXCLUDED_TYPES.contains(event.getType()))
+            {
+                return;
+            }
 //
 //            event.getMatrixStack().translate(0,20,0);
             RenderSystem.translated(0, 20, 0);
