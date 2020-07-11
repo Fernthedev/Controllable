@@ -1,6 +1,7 @@
 package com.mrcrayfish.controllable.client.gui;
 
 import net.minecraft.client.Minecraft;
+import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
@@ -20,7 +21,6 @@ public class ControllerSelectionScreen extends Screen
     private Button btnRemap;
     private Button btnActionList;
     private Button btnBack;
-
 
     public ControllerSelectionScreen(SDL2ControllerManager manager, Screen previousScreen)
     {
@@ -43,9 +43,8 @@ public class ControllerSelectionScreen extends Screen
 
 
         //this.btnRemap.active = this.listControllers.getSelected() != null;
-        this.btnRemap.active = false; // TODO: Explain why is disabled
+        this.btnRemap.active = false;
     }
-
 
     @Override
     public void tick()
@@ -59,12 +58,12 @@ public class ControllerSelectionScreen extends Screen
     }
 
     @Override
-    public void render(int mouseX, int mouseY, float partialTicks)
+    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks)
     {
-        this.renderBackground();
-        this.listControllers.render(mouseX, mouseY, partialTicks);
-        this.drawCenteredString(this.font, I18n.format("controllable.gui.title.select_controller"), this.width / 2, 20, 16777215);
-        super.render(mouseX, mouseY, partialTicks);
+        this.renderBackground(matrixStack);
+        this.listControllers.render(matrixStack, mouseX, mouseY, partialTicks);
+        this.drawCenteredString(matrixStack, this.font, I18n.format("controllable.gui.title.select_controller"), this.width / 2, 20, 16777215);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
     }
 
     private void handleSettings(Button button)

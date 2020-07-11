@@ -1,5 +1,6 @@
 package com.mrcrayfish.controllable.client;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.registry.ButtonRegistry;
@@ -105,22 +106,23 @@ public class Hooks
             mouseX = (int) (input.getVirtualMouseX() * (double) minecraft.getMainWindow().getScaledWidth() / (double) minecraft.getMainWindow().getWidth());
             mouseY = (int) (input.getVirtualMouseY() * (double) minecraft.getMainWindow().getScaledHeight() / (double) minecraft.getMainWindow().getHeight());
         }
-        if(!MinecraftForge.EVENT_BUS.post(new GuiScreenEvent.DrawScreenEvent.Pre(screen, mouseX, mouseY, partialTicks)))
+        MatrixStack matrixStack = new MatrixStack();
+        if(!MinecraftForge.EVENT_BUS.post(new GuiScreenEvent.DrawScreenEvent.Pre(screen, matrixStack, mouseX, mouseY, partialTicks)))
         {
-            screen.render(mouseX, mouseY, partialTicks);
+            screen.render(matrixStack, mouseX, mouseY, partialTicks);
         }
-        MinecraftForge.EVENT_BUS.post(new GuiScreenEvent.DrawScreenEvent.Post(screen, mouseX, mouseY, partialTicks));
+        MinecraftForge.EVENT_BUS.post(new GuiScreenEvent.DrawScreenEvent.Post(screen, matrixStack, mouseX, mouseY, partialTicks));
     }
 
     /**
      * Fixes selected item name rendering not being offset by console hotbar
      */
     @SuppressWarnings("unused")
-    public static void applyHotbarOffset()
+    public static void applyHotbarOffset(MatrixStack matrixStack)
     {
         if(Controllable.getOptions().useConsoleHotbar())
         {
-            RenderSystem.translated(0, -20, 0);
+            matrixStack.translate(0,0,0);
         }
     }
 }
