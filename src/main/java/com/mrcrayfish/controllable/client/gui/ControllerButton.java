@@ -1,5 +1,6 @@
 package com.mrcrayfish.controllable.client.gui;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mrcrayfish.controllable.Controllable;
 import net.minecraft.client.Minecraft;
@@ -28,7 +29,7 @@ public class ControllerButton extends AbstractGui {
         this.scale = scale;
     }
 
-    public void draw(int x, int y, int mouseX, int mouseY, boolean selected)
+    public void draw(MatrixStack matrixStack, int x, int y, int mouseX, int mouseY, boolean selected)
     {
         RenderSystem.enableBlend();
         Minecraft.getInstance().getTextureManager().bindTexture(ControllerLayoutScreen.TEXTURE);
@@ -47,7 +48,7 @@ public class ControllerButton extends AbstractGui {
         {
             buttonV += this.height;
         }
-        blit(buttonX, buttonY, this.width * this.scale, this.height * this.scale, buttonU, buttonV, this.width, this.height, 256, 256);
+        blit(matrixStack, buttonX, buttonY, this.width * this.scale, this.height * this.scale, buttonU, buttonV, this.width, this.height, 256, 256);
         RenderSystem.disableBlend();
     }
 

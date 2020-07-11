@@ -164,7 +164,7 @@ public class RenderEvents
                     actions.put(Buttons.LEFT_TRIGGER, new Action(I18n.format("controllable.action.use_item"), Action.Side.RIGHT));
                 }
 
-                if(!mc.player.func_225608_bj_() && blockHit && canOpenBlock && !mc.player.isHandActive())
+                if(!mc.player.isSneaking() && blockHit && canOpenBlock && !mc.player.isHandActive())
                 {
                     actions.put(Buttons.LEFT_TRIGGER, new Action(I18n.format("controllable.action.interact"), Action.Side.RIGHT));
                 }
@@ -220,68 +220,68 @@ public class RenderEvents
         if(Controllable.getController() == null)
             return;
 
-        RenderSystem.pushMatrix();
+        MatrixStack matrixStack = new MatrixStack();
+        matrixStack.push();
+
+        if(!MinecraftForge.EVENT_BUS.post(new RenderAvailableActionsEvent()))
         {
-            if(!MinecraftForge.EVENT_BUS.post(new RenderAvailableActionsEvent()))
+            IngameGui guiIngame = mc.ingameGUI;
+            boolean isChatVisible = mc.currentScreen == null && guiIngame.getChatGUI().drawnChatLines.stream().anyMatch(chatLine -> guiIngame.getTicks() - chatLine.getUpdatedCounter() < 200);
+
+            int leftIndex = 0;
+            int rightIndex = 0;
+            for(Integer button : actions.keySet())
             {
-                IngameGui guiIngame = mc.ingameGUI;
-                boolean isChatVisible = mc.currentScreen == null && guiIngame.getChatGUI().drawnChatLines.stream().anyMatch(chatLine -> guiIngame.getTicks() - chatLine.getUpdatedCounter() < 200);
+                Action action = actions.get(button);
+                Action.Side side = action.getSide();
 
-                int leftIndex = 0;
-                int rightIndex = 0;
-                for(Integer button : actions.keySet())
+                int remappedButton = button;
+                Controller controller = Controllable.getController();
+                Mappings.Entry mapping = controller.getMapping();
+                if(mapping != null)
                 {
-                    Action action = actions.get(button);
-                    Action.Side side = action.getSide();
-
-                    int remappedButton = button;
-                    Controller controller = Controllable.getController();
-                    Mappings.Entry mapping = controller.getMapping();
-                    if(mapping != null)
-                    {
-                        remappedButton = mapping.remap(button);
-                    }
-
-                    int texU = remappedButton * 13;
-                    int texV = Controllable.getOptions().getControllerType().ordinal() * 13;
-                    int size = 13;
-
-                    int x = side == Action.Side.LEFT ? 5 : mc.getMainWindow().getScaledWidth() - 5 - size;
-                    int y = mc.getMainWindow().getScaledHeight() + (side == Action.Side.LEFT ? leftIndex : rightIndex) * -15 - size - 5;
-
-                    mc.getTextureManager().bindTexture(CONTROLLER_BUTTONS);
-                    RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-                    RenderSystem.disableLighting();
-
-                    if(isChatVisible && side == Action.Side.LEFT && leftIndex >= 2)
-                        continue;
-
-                    /* Draw buttons icon */
-                    Widget.blit(x, y, texU, texV, size, size, 256, 256);
-
-                    /* Draw description text */
-                    if(side == Action.Side.LEFT)
-                    {
-                        mc.fontRenderer.drawString(action.getDescription(), x + 18, y + 3, Color.WHITE.getRGB());
-                        leftIndex++;
-                    }
-                    else
-                    {
-                        int width = mc.fontRenderer.getStringWidth(action.getDescription());
-                        mc.fontRenderer.drawString(action.getDescription(), x - 5 - width, y + 3, Color.WHITE.getRGB());
-                        rightIndex++;
-                    }
+                    remappedButton = mapping.remap(button);
                 }
-            }
 
-            if(mc.player != null && mc.currentScreen == null && Controllable.getOptions().isRenderMiniPlayer())
-            {
-                if(!MinecraftForge.EVENT_BUS.post(new RenderPlayerPreviewEvent()))
+                int texU = remappedButton * 13;
+                int texV = Controllable.getOptions().getControllerType().ordinal() * 13;
+                int size = 13;
+
+                int x = side == Action.Side.LEFT ? 5 : mc.getMainWindow().getScaledWidth() - 5 - size;
+                int y = mc.getMainWindow().getScaledHeight() + (side == Action.Side.LEFT ? leftIndex : rightIndex) * -15 - size - 5;
+
+                mc.getTextureManager().bindTexture(CONTROLLER_BUTTONS);
+
+                if(isChatVisible && side == Action.Side.LEFT && leftIndex >= 2)
+                    continue;
+
+
+                /* Draw buttons icon */
+                Widget.blit(matrixStack, x, y, texU, texV, size, size, 256, 256);
+
+                /* Draw description text */
+                if(side == Action.Side.LEFT)
                 {
-                    InventoryScreen.func_228187_a_(20, 45, 20, 0, 0, mc.player);
+                    mc.fontRenderer.drawString(matrixStack, action.getDescription(), x + 18, y + 3, Color.WHITE.getRGB());
+                    leftIndex++;
+                }
+                else
+                {
+                    int width = mc.fontRenderer.getStringWidth(action.getDescription());
+                    mc.fontRenderer.drawString(matrixStack, action.getDescription(), x - 5 - width, y + 3, Color.WHITE.getRGB());
+                    rightIndex++;
                 }
             }
         }
-        RenderSystem.popMatrix();
+
+        if(mc.player != null && mc.currentScreen == null && Controllable.getOptions().isRenderMiniPlayer())
+        {
+            if(!MinecraftForge.EVENT_BUS.post(new RenderPlayerPreviewEvent()))
+            {
+                InventoryScreen.drawEntityOnScreen(20, 45, 20, 0, 0, mc.player);
+            }
+        }
+
+        matrixStack.pop();
     }
 }
