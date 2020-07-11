@@ -111,7 +111,7 @@ public class ControllerOptions
 
     public static final SliderPercentageOption ATTACK_SPEED = new ControllableSliderPercentageOption("controllable.options.attackSpeed", 5, 40, 1, gameSettings -> (double) Controllable.getOptions().attackSpeed, (gameSettings, value) -> Controllable.getOptions().attackSpeed = (int) MathHelper.clamp(value, 5, 40), (gameSettings, sliderPercentageOption) -> {
         int attackSpeed = Controllable.getOptions().attackSpeed;
-        return I18n.format("controllable.options.attackSpeed.format", FORMAT.format(attackSpeed));
+        return new TranslationTextComponent("controllable.options.attackSpeed.format", FORMAT.format(attackSpeed));
     });
 
     public static final AbstractOption TOGGLE_SPRINT = new ControllableBooleanOption("controllable.options.toggleSprint", gameSettings -> Controllable.getOptions().toggleSprint, (gameSettings, aBoolean) -> Controllable.getOptions().toggleSprint = aBoolean);
@@ -120,12 +120,12 @@ public class ControllerOptions
 
     public static final SliderPercentageOption AIM_ASSIST_INTENSITY = new ControllableSliderPercentageOption("controllable.options.aimAssistIntensity", 1, 100, 1, gameSettings -> (double) Controllable.getOptions().aimAssistIntensity, (gameSettings, value) -> Controllable.getOptions().aimAssistIntensity = (int) MathHelper.clamp(value, 1, 100), (gameSettings, sliderPercentageOption) -> {
         int assistIntensity = Controllable.getOptions().aimAssistIntensity;
-        return I18n.format("controllable.options.aimAssistIntensity.format", assistIntensity);
+        return new TranslationTextComponent("controllable.options.aimAssistIntensity.format", assistIntensity);
     });
 
-    public static final AbstractOption HOSTILE_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.hostile", AimAssistMode.class, gameSettings -> Controllable.getOptions().hostileAimMode, (gameSettings, mode) -> Controllable.getOptions().hostileAimMode = mode, (gameSettings, mode) -> I18n.format("controllable.options.aimAssistMode." + mode.get(gameSettings).getName()));
-    public static final AbstractOption ANIMAL_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.animal", AimAssistMode.class, gameSettings -> Controllable.getOptions().animalAimMode, (gameSettings, mode) -> Controllable.getOptions().animalAimMode = mode, (gameSettings, mode) -> I18n.format("controllable.options.aimAssistMode." + mode.get(gameSettings).getName()));
-    public static final AbstractOption PLAYER_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.player", AimAssistMode.class, gameSettings -> Controllable.getOptions().playerAimMode, (gameSettings, mode) -> Controllable.getOptions().playerAimMode = mode, (gameSettings, mode) -> I18n.format("controllable.options.aimAssistMode." + mode.get(gameSettings).getName()));
+    public static final AbstractOption HOSTILE_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.hostile", AimAssistMode.class, gameSettings -> Controllable.getOptions().hostileAimMode, (gameSettings, mode) -> Controllable.getOptions().hostileAimMode = mode, (gameSettings, mode) -> I18n.format("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
+    public static final AbstractOption ANIMAL_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.animal", AimAssistMode.class, gameSettings -> Controllable.getOptions().animalAimMode, (gameSettings, mode) -> Controllable.getOptions().animalAimMode = mode, (gameSettings, mode) -> I18n.format("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
+    public static final AbstractOption PLAYER_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.player", AimAssistMode.class, gameSettings -> Controllable.getOptions().playerAimMode, (gameSettings, mode) -> Controllable.getOptions().playerAimMode = mode, (gameSettings, mode) -> I18n.format("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
 
     public static final AbstractOption TOGGLE_IGNORE_SAME_TEAM = new ControllableBooleanOption("controllable.options.aimAssist.ignoreSameTeam",
             gameSettings -> Controllable.getOptions().ignoreSameTeam,
@@ -430,7 +430,7 @@ public class ControllerOptions
         }
 
         @Override
-        public String getName()
+        public String getString()
         {
             return strMode;
         }

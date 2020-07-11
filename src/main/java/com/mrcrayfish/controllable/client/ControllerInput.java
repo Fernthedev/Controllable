@@ -34,7 +34,11 @@ import net.minecraft.network.play.client.CPlayerDiggingPacket;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.ScreenShotHelper;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.EntityRayTraceResult;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.vector.Vector2f;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.ForgeHooksClient;
@@ -348,7 +352,7 @@ public class ControllerInput
         }
     }
 
-    private Vec2f handleAimAssist(float yaw, float pitch)
+    private Vector2f handleAimAssist(float yaw, float pitch)
     {
         Minecraft mc = Minecraft.getInstance();
         PlayerEntity player = mc.player;
@@ -357,7 +361,7 @@ public class ControllerInput
 
         if(player == null || controller == null || mouseMoved)
         {
-            return new Vec2f(pitch, yaw);
+            return new Vector2f(pitch, yaw);
         }
 
         float resultPitch = pitch;
@@ -490,7 +494,7 @@ public class ControllerInput
             }
         }
 
-        return new Vec2f(resultPitch, resultYaw);
+        return new Vector2f(resultPitch, resultYaw);
     }
 
     /**
@@ -501,7 +505,7 @@ public class ControllerInput
      */
     protected float getTargetPitch(Entity target, PlayerEntity playerEntity) {
         double xDiff = target.getPosX() - playerEntity.getPosX();
-        double yDiff = getEyePosition(target) - playerEntity.func_226280_cw_();
+        double yDiff = getEyePosition(target) - playerEntity.getPosYEye();
         double zDiff = target.getPosZ() - playerEntity.getPosZ();
         double distance = MathHelper.sqrt(xDiff * xDiff + zDiff * zDiff);
         return (float) (-(MathHelper.atan2(yDiff, distance) * (double)(180F / (float)Math.PI)));
@@ -525,7 +529,7 @@ public class ControllerInput
      * @return
      */
     private static double getEyePosition(Entity entity) {
-        return entity instanceof LivingEntity ? entity.func_226280_cw_() : (entity.getBoundingBox().minY + entity.getBoundingBox().maxY) / 2.0D;
+        return entity instanceof LivingEntity ? entity.getPosYEye() : (entity.getBoundingBox().minY + entity.getBoundingBox().maxY) / 2.0D;
     }
 
     private ControllerOptions.AimAssistMode getMode(Entity entity)
@@ -636,7 +640,7 @@ public class ControllerInput
 
             if(Controllable.getOptions().isAimAssist())
             {
-                Vec2f aimAssist = handleAimAssist(targetYaw, targetPitch);
+                Vector2f aimAssist = handleAimAssist(targetYaw, targetPitch);
 
 
                 targetPitch = aimAssist.x;
