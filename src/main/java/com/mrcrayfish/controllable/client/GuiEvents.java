@@ -1,6 +1,7 @@
 package com.mrcrayfish.controllable.client;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.client.gui.ControllerSelectionScreen;
 import com.mrcrayfish.controllable.client.gui.widget.ControllerButton;
@@ -64,11 +65,13 @@ public class GuiEvents
     {
         if(Controllable.getOptions().useConsoleHotbar())
         {
-            if(EXCLUDED_TYPES.contains(event.getType()))
-            {
-                return;
-            }
-            event.getMatrixStack().translate(0,0,0);
+//            if(EXCLUDED_TYPES.contains(event.getType()))
+//            {
+//                return;
+//            }
+
+//            event.getMatrixStack().translate(0,-20,0);
+            RenderSystem.translated(0, -20, 0);
         }
     }
 
@@ -77,11 +80,13 @@ public class GuiEvents
     {
         if(Controllable.getOptions().useConsoleHotbar())
         {
-            if(EXCLUDED_TYPES.contains(event.getType()))
-            {
-                return;
-            }
-            event.getMatrixStack().translate(0,0,0);
+//            if(EXCLUDED_TYPES.contains(event.getType()))
+//            {
+//                return;
+//            }
+//
+//            event.getMatrixStack().translate(0,20,0);
+            RenderSystem.translated(0, 20, 0);
         }
     }
 }
