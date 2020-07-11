@@ -108,6 +108,14 @@ public class ControllerOptions
         return new TranslationTextComponent("controllable.options.mouseSpeed.format", FORMAT.format(mouseSpeed));
     });
 
+    public static final SliderPercentageOption ATTACK_SPEED = new ControllableSliderPercentageOption("controllable.options.attackSpeed", 5, 40, 1,
+            gameSettings -> (double) Controllable.getOptions().attackSpeed,
+            (gameSettings, value) -> Controllable.getOptions().attackSpeed = (int) MathHelper.clamp(value, 5, 40),
+            (gameSettings, sliderPercentageOption) -> {
+                int attackSpeed = Controllable.getOptions().attackSpeed;
+                return new TranslationTextComponent("controllable.options.attackSpeed.format", FORMAT.format(attackSpeed));
+            });
+
     public static final AbstractOption TOGGLE_SPRINT = new ControllableBooleanOption("controllable.options.toggleSprint",
             gameSettings -> Controllable.getOptions().toggleSprint,
             (gameSettings, aBoolean) -> Controllable.getOptions().toggleSprint = aBoolean);
@@ -127,6 +135,7 @@ public class ControllerOptions
     private double rotationSpeed = 25.0;
     private double mouseSpeed = 30.0;
     private boolean toggleSprint = false;
+    private int attackSpeed = 5;
 
 
     public ControllerOptions(File dataDir)
@@ -201,6 +210,9 @@ public class ControllerOptions
                         case "toggleSprint":
                             this.toggleSprint = Boolean.parseBoolean(value);
                             break;
+                        case "attackSpeed":
+                            this.attackSpeed = Integer.parseInt(value);
+                            break;
                     }
                 }
                 catch(Exception e)
@@ -231,6 +243,7 @@ public class ControllerOptions
             writer.println("deadZone:" + FORMAT.format(this.deadZone));
             writer.println("rotationSpeed:" + FORMAT.format(this.rotationSpeed));
             writer.println("mouseSpeed:" + FORMAT.format(this.mouseSpeed));
+            writer.println("attackSpeed:" + FORMAT.format(this.attackSpeed));
             writer.println("toggleSprint:" + this.toggleSprint);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -296,4 +309,8 @@ public class ControllerOptions
         return this.mouseSpeed;
     }
 
+    public int getAttackSpeed()
+    {
+        return attackSpeed;
+    }
 }
