@@ -6,8 +6,8 @@ import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.client.ControllerType;
 import com.mrcrayfish.controllable.client.CursorType;
 import lombok.Getter;
+import net.minecraft.client.AbstractOption;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.client.settings.AbstractOption;
 import net.minecraft.client.settings.BooleanOption;
 import net.minecraft.client.settings.SliderPercentageOption;
 import net.minecraft.nbt.CompoundNBT;
@@ -114,7 +114,7 @@ public class ControllerOptions {
             (gameSettings, value) -> Controllable.getOptions().attackSpeed = (int) MathHelper.clamp(value, 5, 40),
             (gameSettings, sliderPercentageOption) -> {
                 int attackSpeed = Controllable.getOptions().attackSpeed;
-                return I18n.format("controllable.options.attackSpeed.format", FORMAT.format(attackSpeed));
+                return new TranslationTextComponent("controllable.options.attackSpeed.format", FORMAT.format(attackSpeed));
             });
 
     public static final AbstractOption TOGGLE_SPRINT = new ControllableBooleanOption("controllable.options.toggleSprint",

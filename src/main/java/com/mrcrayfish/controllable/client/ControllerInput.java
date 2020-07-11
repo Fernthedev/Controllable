@@ -444,20 +444,24 @@ public class ControllerInput
         event.getMovementInput().sneaking = sneaking;
 
 
-        if (Controllable.getOptions().isToggleSprint()) {
-            if (keyboardSprinting && !mc.gameSettings.keyBindSprint.isKeyDown()) {
+        if(Controllable.getOptions().isToggleSprint())
+        {
+            if(keyboardSprinting && !mc.gameSettings.keyBindSprint.isKeyDown())
+            {
                 sprinting = false;
                 keyboardSprinting = false;
             }
 
-            if (mc.gameSettings.keyBindSprint.isKeyDown()) {
+            if(mc.gameSettings.keyBindSprint.isKeyDown())
+            {
                 sprinting = true;
                 keyboardSprinting = true;
             }
 
             sprinting |= mc.gameSettings.keyBindSprint.isKeyDown();
 
-            mc.player.setSprinting(sprinting);
+            if (!mc.player.isSprinting())
+                mc.player.setSprinting(sprinting);
         }
 
         if(mc.currentScreen == null)
