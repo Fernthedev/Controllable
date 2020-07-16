@@ -67,6 +67,8 @@ public class ControllerInput
     private float targetPitch;
     private float targetYaw;
 
+    private boolean drawVirtualCursor = true;
+
     private int dropCounter = -1;
 
     public double getVirtualMouseX()
@@ -128,8 +130,9 @@ public class ControllerInput
                     double mouseY = mc.mouseHelper.getMouseY();
                     if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse())
                     {
-                        mouseX = virtualMouseX;
-                        mouseY = virtualMouseY;
+//                        mouseX = virtualMouseX;
+//                        mouseY = virtualMouseY;
+                        drawVirtualCursor = true;
                     }
                     prevTargetMouseX = targetMouseX = (int) mouseX;
                     prevTargetMouseY = targetMouseY = (int) mouseY;
@@ -232,6 +235,7 @@ public class ControllerInput
          * mouse position is different to the previous tick's position. This allows for the mouse
          * to still be used as input. */
         Minecraft mc = Minecraft.getInstance();
+
         if(mc.currentScreen != null && (targetMouseX != prevTargetMouseX || targetMouseY != prevTargetMouseY))
         {
             if(!(mc.currentScreen instanceof ControllerLayoutScreen))
@@ -243,19 +247,30 @@ public class ControllerInput
                 {
                     virtualMouseX = mouseX;
                     virtualMouseY = mouseY;
-                    GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY); }
+                    GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY);
+                    GLFW.glfwSetInputMode(mc.getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
+                }
                 else
                 {
                     GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY);
+                    GLFW.glfwSetInputMode(mc.getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
                 }
             }
         }
+        else if((
+                // Check if mouse move drastically.
+                Minecraft.getInstance().mouseHelper.getMouseX() - virtualMouseX > 0.5 || Minecraft.getInstance().mouseHelper.getMouseY() - virtualMouseY > 0.5) && Controllable.getOptions().isVirtualMouse())
+        {
+            GLFW.glfwSetInputMode(Minecraft.getInstance().getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
+            drawVirtualCursor = false;
+        }
+
     }
 
     @SubscribeEvent(receiveCanceled = true)
     public void onRenderScreen(GuiScreenEvent.DrawScreenEvent.Post event)
     {
-        if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse() && lastUse > 0)
+        if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse() && lastUse > 0 && drawVirtualCursor)
         {
             MatrixStack matrixStack = event.getMatrixStack();
             matrixStack.push();
