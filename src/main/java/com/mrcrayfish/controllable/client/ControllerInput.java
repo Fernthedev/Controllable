@@ -96,6 +96,8 @@ public class ControllerInput
 
     private int currentAttackTimer;
 
+    private boolean drawVirtualCursor = true;
+
     private int dropCounter = -1;
     private boolean mouseMoved;
     private boolean controllerInput;
@@ -115,7 +117,6 @@ public class ControllerInput
     {
         return lastUse;
     }
-    
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event)
@@ -161,8 +162,9 @@ public class ControllerInput
                     double mouseY = mc.mouseHelper.getMouseY();
                     if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse())
                     {
-                        mouseX = virtualMouseX;
-                        mouseY = virtualMouseY;
+//                        mouseX = virtualMouseX;
+//                        mouseY = virtualMouseY;
+                        drawVirtualCursor = true;
                     }
                     prevTargetMouseX = targetMouseX = (int) mouseX;
                     prevTargetMouseY = targetMouseY = (int) mouseY;
@@ -275,19 +277,30 @@ public class ControllerInput
                 {
                     virtualMouseX = mouseX;
                     virtualMouseY = mouseY;
+                    GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY);
+                    GLFW.glfwSetInputMode(mc.getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
                 }
                 else
                 {
                     GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY);
+                    GLFW.glfwSetInputMode(mc.getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
                 }
             }
         }
+        else if((
+                // Check if mouse move drastically.
+                Minecraft.getInstance().mouseHelper.getMouseX() - virtualMouseX > 0.5 || Minecraft.getInstance().mouseHelper.getMouseY() - virtualMouseY > 0.5) && Controllable.getOptions().isVirtualMouse())
+        {
+            GLFW.glfwSetInputMode(Minecraft.getInstance().getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
+            drawVirtualCursor = false;
+        }
+
     }
 
     @SubscribeEvent(receiveCanceled = true)
     public void onRenderScreen(GuiScreenEvent.DrawScreenEvent.Post event)
     {
-        if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse() && lastUse > 0)
+        if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse() && lastUse > 0 && drawVirtualCursor)
         {
             RenderSystem.pushMatrix();
             {
@@ -817,8 +830,6 @@ public class ControllerInput
                 currentAttackTimer = 0;
             }
         }
-
-
     }
 
     public void handleButtonInput(Controller controller, int button, boolean state)
