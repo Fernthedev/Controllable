@@ -93,6 +93,8 @@ public class ControllerInput
     private float targetPitch;
     private float targetYaw;
 
+    private boolean drawVirtualCursor = true;
+
     private Entity aimAssistTarget;
     private boolean aimAssistIgnore = true; //If true, aim assist will not aim at an entity until it becomes false. True when mouse is moved, false when controller is moved. Mouse will always override controller state.
     private double rawMouseX;
@@ -119,7 +121,6 @@ public class ControllerInput
     {
         return lastUse;
     }
-    
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event)
@@ -165,8 +166,9 @@ public class ControllerInput
                     double mouseY = mc.mouseHelper.getMouseY();
                     if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse())
                     {
-                        mouseX = virtualMouseX;
-                        mouseY = virtualMouseY;
+//                        mouseX = virtualMouseX;
+//                        mouseY = virtualMouseY;
+                        drawVirtualCursor = true;
                     }
                     prevTargetMouseX = targetMouseX = (int) mouseX;
                     prevTargetMouseY = targetMouseY = (int) mouseY;
@@ -228,7 +230,8 @@ public class ControllerInput
                         {
                             double dragX = (targetMouseX - prevTargetMouseX) * (double) mc.getMainWindow().getScaledWidth() / (double) mc.getMainWindow().getWidth();
                             double dragY = (targetMouseY - prevTargetMouseY) * (double) mc.getMainWindow().getScaledHeight() / (double) mc.getMainWindow().getHeight();
-                            Screen.wrapScreenError(() -> {
+                            Screen.wrapScreenError(() ->
+                            {
                                 if(net.minecraftforge.client.ForgeHooksClient.onGuiMouseDragPre(screen, mouseX, mouseY, mc.mouseHelper.activeButton, dragX, dragY))
                                 {
                                     return;
@@ -280,19 +283,29 @@ public class ControllerInput
                     virtualMouseX = mouseX;
                     virtualMouseY = mouseY;
                     GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY);
+                    GLFW.glfwSetInputMode(mc.getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
                 }
                 else
                 {
                     GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY);
+                    GLFW.glfwSetInputMode(mc.getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
                 }
             }
         }
+        else if((
+                // Check if mouse move drastically.
+                Minecraft.getInstance().mouseHelper.getMouseX() - virtualMouseX > 0.5 || Minecraft.getInstance().mouseHelper.getMouseY() - virtualMouseY > 0.5) && Controllable.getOptions().isVirtualMouse())
+        {
+            GLFW.glfwSetInputMode(Minecraft.getInstance().getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
+            drawVirtualCursor = false;
+        }
+
     }
 
     @SubscribeEvent(receiveCanceled = true)
     public void onRenderScreen(GuiScreenEvent.DrawScreenEvent.Post event)
     {
-        if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse() && lastUse > 0)
+        if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse() && lastUse > 0 && drawVirtualCursor)
         {
             MatrixStack matrixStack = event.getMatrixStack();
             matrixStack.push();
@@ -1199,7 +1212,8 @@ public class ControllerInput
 
             double finalMouseX = mouseX;
             double finalMouseY = mouseY;
-            Screen.wrapScreenError(() -> {
+            Screen.wrapScreenError(() ->
+            {
                 boolean cancelled = ForgeHooksClient.onGuiMouseClickedPre(screen, finalMouseX, finalMouseY, button);
                 if(!cancelled)
                 {
@@ -1239,7 +1253,8 @@ public class ControllerInput
 
             double finalMouseX = mouseX;
             double finalMouseY = mouseY;
-            Screen.wrapScreenError(() -> {
+            Screen.wrapScreenError(() ->
+            {
                 boolean cancelled = ForgeHooksClient.onGuiMouseReleasedPre(screen, finalMouseX, finalMouseY, button);
                 if(!cancelled)
                 {
