@@ -5,6 +5,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.client.ButtonBinding;
 import com.mrcrayfish.controllable.client.ControllerProperties;
+import com.mrcrayfish.controllable.client.settings.ControllableBooleanOption;
 import com.mrcrayfish.controllable.event.ControllerEvent;
 import net.minecraft.client.GameSettings;
 import net.minecraft.client.Minecraft;
@@ -30,6 +31,16 @@ public class ControllerActionMenu extends ControlsScreen {
     private ControllerActionList buttonActionList;
     private Button buttonReset;
 
+
+    private boolean showIcons = true;
+
+
+    private ControllableBooleanOption buttonShowIcons = new ControllableBooleanOption("controllable.gui.option.actionMenuShowIcons", gameSettings -> {
+        return showIcons;
+    }, (gameSettings, value) -> {
+        showIcons = value;
+    });
+
     public ControllerActionMenu(Screen screen, GameSettings settings) {
         super(screen, settings);
         MinecraftForge.EVENT_BUS.register(this);
@@ -52,6 +63,8 @@ public class ControllerActionMenu extends ControlsScreen {
             }
 
         }));
+        addButton(buttonShowIcons.createWidget(this.gameSettings, this.width / 2 - (150 / 2), 18, 150));
+
         this.addButton(new Button(this.width / 2 - 155 + 160, this.height - 29, 150, 20, new TranslationTextComponent("gui.done"), (p_213124_1_) -> {
             this.minecraft.displayGuiScreen(this.parentScreen);
             MinecraftForge.EVENT_BUS.unregister(this); // Prevent storing this instance in the event bus.
@@ -59,7 +72,7 @@ public class ControllerActionMenu extends ControlsScreen {
     }
 
     public void render(MatrixStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_) {
-        this.renderBackground(matrixStack);
+//        this.renderBackground(matrixStack);
         this.buttonActionList.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
         this.drawCenteredString(matrixStack, this.font, this.title.getString(), this.width / 2, 8, 16777215);
         boolean flag = false;
@@ -101,5 +114,10 @@ public class ControllerActionMenu extends ControlsScreen {
                 this.time = Util.milliTime();
             }
         }
+    }
+
+    public boolean showIcons()
+    {
+        return showIcons;
     }
 }

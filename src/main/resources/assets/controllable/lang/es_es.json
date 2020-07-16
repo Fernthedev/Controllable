@@ -40,6 +40,7 @@
     "controllable.gui.actionList": "Control de accion",
     "controllable.gui.remap": "Remapear botones",
     "controllable.gui.back": "Volver",
+    "controllable.gui.option.actionMenuShowIcons": "Mostar Íconos: %s",
     "controllable.options.forceFeedback": "Vibración",
     "controllable.options.autoSelect": "Auto seleccionar",
     "controllable.options.deadZone": "Zona muerta",
