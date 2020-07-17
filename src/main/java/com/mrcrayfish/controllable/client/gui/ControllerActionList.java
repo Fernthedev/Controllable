@@ -72,25 +72,6 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
     }
 
     @Override
-    protected void renderList(MatrixStack matrixStack, int p_238478_2_, int p_238478_3_, int p_238478_4_, int p_238478_5_, float p_238478_6_)
-    {
-        super.renderList(matrixStack, p_238478_2_, p_238478_3_, p_238478_4_, p_238478_5_, p_238478_6_);
-
-        if(controlsScreen.showIcons())
-        {
-            for(Entry entry : children())
-            {
-                if(entry instanceof KeyEntry)
-                {
-                    KeyEntry keyEntry = (KeyEntry) entry;
-
-                    keyEntry.drawIcon(matrixStack);
-                }
-            }
-        }
-    }
-
-    @Override
     protected int getScrollbarPosition() {
         return super.getScrollbarPosition() + 15 + 20;
     }
@@ -135,11 +116,8 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
         private final Button btnReset;
         private final Button btnSetNone;
 
-        private final ActionData actionData;
-
         private KeyEntry(final ButtonBinding buttonBinding, final String action, final ActionData actionData) {
             this.buttonBinding = buttonBinding;
-            this.actionData = actionData;
             this.actionDescription = I18n.format(actionData.getActionTranslateKey());
 
             this.btnChangeKeyBinding = new Button(0, 0, 75 + 20 /*Forge: add space*/, 20, new StringTextComponent(this.actionDescription), (p_214386_2_) -> {
@@ -266,6 +244,8 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
             this.btnChangeKeyBinding.render(matrixStack, p_render_6_, p_render_7_, p_render_9_);
 
 
+            if (controlsScreen.showIcons())
+                drawIcon(matrixStack);
 
         }
 
@@ -274,34 +254,26 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
 
             matrixStack.push();
 
+
+
             int remappedButton = buttonBinding.getButtonId();
             Controller controller = Controllable.getController();
-            Mappings.Entry mapping = controller.getMapping();
-            if(mapping != null)
+
+            if (controller != null)
             {
-                remappedButton = mapping.remap(buttonBinding.getButtonId());
+                Mappings.Entry mapping = controller.getMapping();
+                if(mapping != null)
+                {
+                    remappedButton = mapping.remap(buttonBinding.getButtonId());
+                }
             }
 
             int texU = remappedButton * 13;
             int texV = Controllable.getOptions().getControllerType().ordinal() * 13;
             int size = 13;
 
-//            this.x + this.width / 2, this.y + (this.height - 8) / 2
-
             int x = btnChangeKeyBinding.x + (btnChangeKeyBinding.getWidth() - 13) / 2;
             int y = btnChangeKeyBinding.y + (btnChangeKeyBinding.getHeight() - 13) / 2;
-
-//            try
-//            {
-//                if (remappedButton == 2)
-//                {
-//
-//                    System.out.println("Draw icon for x " + p_render_6_ +" y " + p_render_7_ + " button " + Buttons.buttonNameFromId(remappedButton));
-//
-//                }
-//            } catch (IndexOutOfBoundsException ignored) {}
-
-//            matrixStack.translate(x, y, 0);
 
             minecraft.getTextureManager().bindTexture(CONTROLLER_BUTTONS);
 
