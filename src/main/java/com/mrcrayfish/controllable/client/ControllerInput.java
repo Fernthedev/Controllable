@@ -785,11 +785,6 @@ public class ControllerInput
                 {
                     invokeMouseReleased(mc.currentScreen, 1);
                 }
-                else if(button == Buttons.Y)
-                {
-                    if(mc.player != null)
-                        mc.player.dropItem(mc.player.inventory.getItemStack(), false);
-                }
             }
         }
     }
