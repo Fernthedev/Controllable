@@ -813,8 +813,6 @@ public class ControllerInput
             }
 
 
-            if(ControllableButtons.ButtonActions.USE_ITEM.getButton().isButtonDown() && mc.rightClickDelayTimer == 0 && !mc.player.isHandActive())
-
             // Reset timer if it reaches target
             if(currentAttackTimer > Controllable.getOptions().getAttackSpeed())
                 currentAttackTimer = 0;
