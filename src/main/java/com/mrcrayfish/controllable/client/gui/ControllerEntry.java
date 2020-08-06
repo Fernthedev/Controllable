@@ -33,11 +33,11 @@ public final class ControllerEntry extends ExtendedList.AbstractListEntry<Contro
     @Override
     public void render(MatrixStack matrixStack, int slotIndex, int top, int left, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partialTicks)
     {
-        if(!controller.getSDL2Controller().isConnected())
+        if(!this.controller.getSDL2Controller().isConnected())
             return;
 
-        Minecraft.getInstance().fontRenderer.drawString(matrixStack, controller.getName(), left + 20, top + 4, Color.WHITE.getRGB());
-        if(controllerList.getSelected() == this)
+        Minecraft.getInstance().fontRenderer.drawStringWithShadow(matrixStack, this.controller.getName(), left + 20, top + 4, Color.WHITE.getRGB());
+        if(this.controllerList.getSelected() == this)
         {
             Minecraft.getInstance().getTextureManager().bindTexture(new ResourceLocation("textures/gui/container/beacon.png"));
             Screen.blit(matrixStack, left + 2, top + 2, 91, 224, 14, 12, 256, 256);
@@ -47,14 +47,14 @@ public final class ControllerEntry extends ExtendedList.AbstractListEntry<Contro
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button)
     {
-        if(controllerList.getSelected() != this)
+        if(this.controllerList.getSelected() != this)
         {
-            controllerList.setSelected(this);
+            this.controllerList.setSelected(this);
             Controllable.setController(this.controller.getSDL2Controller());
         }
         else
         {
-            controllerList.setSelected(null);
+            this.controllerList.setSelected(null);
             Controllable.setController(null);
         }
         return true;

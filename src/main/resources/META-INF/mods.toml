@@ -11,14 +11,12 @@ authors="MrCrayfish"
 modId="controllable"
 version="${file.jarVersion}" #mandatory
 displayName="Controllable"
-description='''
-Adds the ability to use a controller to play Minecraft
-'''
+description='''Adds the ability to use a controller to play Minecraft'''
 
 [[dependencies.controllable]]
    modId="forge"
    mandatory=true
-   versionRange="[32.0.0,)"
+   versionRange="[32.0.61,)"
    ordering="NONE"
    side="CLIENT"
 [[dependencies.controllable]]
