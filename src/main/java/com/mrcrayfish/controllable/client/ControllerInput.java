@@ -288,9 +288,20 @@ public class ControllerInput
                 }
             }
         }
-        else if((
+        else if(
+                Controllable.getController() != null &&
+                Controllable.getOptions().isVirtualMouse() &&
+                !(
+                        Math.abs(Controllable.getController().getLThumbStickXValue()) > Controllable.getOptions().getDeadZone() * 0.8 ||
+                        Math.abs(Controllable.getController().getLThumbStickYValue()) > Controllable.getOptions().getDeadZone() * 0.8
+                )
+                        &&
+                (
                 // Check if mouse move drastically.
-                Math.abs(Minecraft.getInstance().mouseHelper.getMouseX() - virtualMouseX) > 3 || Math.abs(Minecraft.getInstance().mouseHelper.getMouseY() - virtualMouseY) > 3) && Controllable.getOptions().isVirtualMouse())
+                        Math.abs(Minecraft.getInstance().mouseHelper.getMouseX() - virtualMouseX) > 3 * Controllable.getOptions().getMouseSpeed() * 0.5 ||
+                        Math.abs(Minecraft.getInstance().mouseHelper.getMouseY() - virtualMouseY) > 3 * Controllable.getOptions().getMouseSpeed() * 0.5
+                )
+        )
         {
             GLFW.glfwSetInputMode(Minecraft.getInstance().getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
             drawVirtualCursor = false;
