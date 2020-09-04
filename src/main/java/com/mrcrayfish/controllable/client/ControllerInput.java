@@ -15,6 +15,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.screen.inventory.CreativeScreen;
 import net.minecraft.client.gui.screen.inventory.InventoryScreen;
+import net.minecraft.client.settings.PointOfView;
 import net.minecraft.client.util.MouseSmoother;
 import net.minecraft.client.util.NativeUtil;
 import net.minecraft.entity.Entity;
@@ -1088,19 +1089,11 @@ public class ControllerInput
     {
         Minecraft mc = Minecraft.getInstance();
 
-        mc.gameSettings.thirdPersonView++;
-        if(mc.gameSettings.thirdPersonView > 2)
-        {
-            mc.gameSettings.thirdPersonView = 0;
-        }
 
-        if(mc.gameSettings.thirdPersonView == 0)
-        {
-            mc.gameRenderer.loadEntityShader(mc.getRenderViewEntity());
-        }
-        else if(mc.gameSettings.thirdPersonView == 1)
-        {
-            mc.gameRenderer.loadEntityShader(null);
+        PointOfView pointofview = mc.gameSettings.func_243230_g(); // getPointOfView()
+        mc.gameSettings.func_243229_a(mc.gameSettings.func_243230_g().func_243194_c() /* Gets the next point of view */); // setPointOfView()
+        if (pointofview.func_243192_a() != mc.gameSettings.func_243230_g().func_243192_a()) {
+            mc.gameRenderer.loadEntityShader(mc.gameSettings.func_243230_g().func_243192_a() ? mc.getRenderViewEntity() : null);
         }
     }
 

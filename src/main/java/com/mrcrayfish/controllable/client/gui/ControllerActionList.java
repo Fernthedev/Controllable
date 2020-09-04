@@ -274,7 +274,7 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
             int size = 13;
 
             int x = btnChangeKeyBinding.x + (btnChangeKeyBinding.getWidth() - 13) / 2;
-            int y = btnChangeKeyBinding.y + (btnChangeKeyBinding.getHeight() - 13) / 2;
+            int y = btnChangeKeyBinding.y + (btnChangeKeyBinding.func_238483_d_() - 13) / 2; //getHeight
 
             minecraft.getTextureManager().bindTexture(CONTROLLER_BUTTONS);
 

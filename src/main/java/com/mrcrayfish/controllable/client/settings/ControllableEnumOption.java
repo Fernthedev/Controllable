@@ -64,7 +64,7 @@ public class ControllableEnumOption<T extends Enum<T> & IStringSerializable> ext
     {
         // TODO: FIX WHEN MAPPINGS DONE
 //        return this.getDisplayString() + this.displayNameGetter.apply(options, this);
-        return func_238238_a_().getString() + displayNameGetter.apply(options, this);
+        return func_243220_a().getString() + displayNameGetter.apply(options, this);
     }
 
     private T getEnum(int ordinal)
