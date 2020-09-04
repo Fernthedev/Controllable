@@ -18,7 +18,8 @@ public class ControllerEvents
     @SubscribeEvent(receiveCanceled = true)
     public void onPlayerUsingItem(LivingEntityUseItemEvent.Tick event)
     {
-        if(!Controllable.getOptions().useForceFeedback())
+        // Ignore if player or vibration off
+        if(!Controllable.getOptions().useForceFeedback() || event.getEntity() != Minecraft.getInstance().player)
         {
             return;
         }
