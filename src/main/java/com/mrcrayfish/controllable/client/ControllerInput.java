@@ -106,17 +106,17 @@ public class ControllerInput
 
     public double getVirtualMouseX()
     {
-        return virtualMouseX;
+        return this.virtualMouseX;
     }
 
     public double getVirtualMouseY()
     {
-        return virtualMouseY;
+        return this.virtualMouseY;
     }
 
     public int getLastUse()
     {
-        return lastUse;
+        return this.lastUse;
     }
 
     @SubscribeEvent
@@ -124,12 +124,12 @@ public class ControllerInput
     {
         if(event.phase == TickEvent.Phase.START)
         {
-            prevTargetMouseX = targetMouseX;
-            prevTargetMouseY = targetMouseY;
+            this.prevTargetMouseX = this.targetMouseX;
+            this.prevTargetMouseY = this.targetMouseY;
 
-            if(lastUse > 0)
+            if(this.lastUse > 0)
             {
-                lastUse--;
+                this.lastUse--;
             }
 
             Controller controller = Controllable.getController();
@@ -138,7 +138,7 @@ public class ControllerInput
 
             if(Math.abs(controller.getLTriggerValue()) >= 0.1F || Math.abs(controller.getRTriggerValue()) >= 0.1F)
             {
-                lastUse = 100;
+                this.lastUse = 100;
             }
 
             Minecraft mc = Minecraft.getInstance();
@@ -157,54 +157,53 @@ public class ControllerInput
                 /* Updates the target mouse position when the initial thumb stick movement is
                  * detected. This fixes an issue when the user moves the cursor with the mouse then
                  * switching back to controller, the cursor would jump to old target mouse position. */
-                if(Math.abs(prevXAxis) < deadZone && Math.abs(prevYAxis) < deadZone)
+                if(Math.abs(this.prevXAxis) < deadZone && Math.abs(this.prevYAxis) < deadZone)
                 {
                     double mouseX = mc.mouseHelper.getMouseX();
                     double mouseY = mc.mouseHelper.getMouseY();
                     if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse())
                     {
-//                        mouseX = virtualMouseX;
-//                        mouseY = virtualMouseY;
-                        drawVirtualCursor = true;
+                        mouseX = this.virtualMouseX;
+                        mouseY = this.virtualMouseY;
                     }
-                    prevTargetMouseX = targetMouseX = (int) mouseX;
-                    prevTargetMouseY = targetMouseY = (int) mouseY;
+                    this.prevTargetMouseX = this.targetMouseX = (int) mouseX;
+                    this.prevTargetMouseY = this.targetMouseY = (int) mouseY;
                 }
 
                 float xAxis = (controller.getLThumbStickXValue() > 0.0F ? 1 : -1) * Math.abs(controller.getLThumbStickXValue());
                 if(Math.abs(xAxis) >= deadZone)
                 {
-                    mouseSpeedX = xAxis;
+                    this.mouseSpeedX = xAxis;
                 }
                 else
                 {
-                    mouseSpeedX = 0.0F;
+                    this.mouseSpeedX = 0.0F;
                 }
 
                 float yAxis = (controller.getLThumbStickYValue() > 0.0F ? 1 : -1) * Math.abs(controller.getLThumbStickYValue());
                 if(Math.abs(yAxis) >= deadZone)
                 {
-                    mouseSpeedY = yAxis;
+                    this.mouseSpeedY = yAxis;
                 }
                 else
                 {
-                    mouseSpeedY = 0.0F;
+                    this.mouseSpeedY = 0.0F;
                 }
             }
 
-            if(Math.abs(mouseSpeedX) > 0.05F || Math.abs(mouseSpeedY) > 0.05F)
+            if(Math.abs(this.mouseSpeedX) > 0.05F || Math.abs(this.mouseSpeedY) > 0.05F)
             {
                 double mouseSpeed = Controllable.getOptions().getMouseSpeed() * mc.getMainWindow().getGuiScaleFactor();
-                targetMouseX += mouseSpeed * mouseSpeedX;
-                targetMouseX = MathHelper.clamp(targetMouseX, 0, mc.getMainWindow().getWidth());
-                targetMouseY += mouseSpeed * mouseSpeedY;
-                targetMouseY = MathHelper.clamp(targetMouseY, 0, mc.getMainWindow().getHeight());
-                lastUse = 100;
-                moved = true;
+                this.targetMouseX += mouseSpeed * this.mouseSpeedX;
+                this.targetMouseX = MathHelper.clamp(this.targetMouseX, 0, mc.getMainWindow().getWidth());
+                this.targetMouseY += mouseSpeed * this.mouseSpeedY;
+                this.targetMouseY = MathHelper.clamp(this.targetMouseY, 0, mc.getMainWindow().getHeight());
+                this.lastUse = 100;
+                this.moved = true;
             }
 
-            prevXAxis = controller.getLThumbStickXValue();
-            prevYAxis = controller.getLThumbStickYValue();
+            this.prevXAxis = controller.getLThumbStickXValue();
+            this.prevYAxis = controller.getLThumbStickYValue();
 
             this.moveMouseToClosestSlot(moving, mc.currentScreen);
 
@@ -216,18 +215,19 @@ public class ControllerInput
             if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse())
             {
                 Screen screen = mc.currentScreen;
-                if(screen != null && (targetMouseX != prevTargetMouseX || targetMouseY != prevTargetMouseY))
+                if(screen != null && (this.targetMouseX != this.prevTargetMouseX || this.targetMouseY != this.prevTargetMouseY))
                 {
                     if(mc.loadingGui == null)
                     {
-                        double mouseX = virtualMouseX * (double) mc.getMainWindow().getScaledWidth() / (double) mc.getMainWindow().getWidth();
-                        double mouseY = virtualMouseY * (double) mc.getMainWindow().getScaledHeight() / (double) mc.getMainWindow().getHeight();
+                        double mouseX = this.virtualMouseX * (double) mc.getMainWindow().getScaledWidth() / (double) mc.getMainWindow().getWidth();
+                        double mouseY = this.virtualMouseY * (double) mc.getMainWindow().getScaledHeight() / (double) mc.getMainWindow().getHeight();
                         Screen.wrapScreenError(() -> screen.mouseMoved(mouseX, mouseY), "mouseMoved event handler", ((IGuiEventListener) screen).getClass().getCanonicalName());
                         if(mc.mouseHelper.activeButton != -1 && mc.mouseHelper.eventTime > 0.0D)
                         {
-                            double dragX = (targetMouseX - prevTargetMouseX) * (double) mc.getMainWindow().getScaledWidth() / (double) mc.getMainWindow().getWidth();
-                            double dragY = (targetMouseY - prevTargetMouseY) * (double) mc.getMainWindow().getScaledHeight() / (double) mc.getMainWindow().getHeight();
-                            Screen.wrapScreenError(() -> {
+                            double dragX = (this.targetMouseX - this.prevTargetMouseX) * (double) mc.getMainWindow().getScaledWidth() / (double) mc.getMainWindow().getWidth();
+                            double dragY = (this.targetMouseY - this.prevTargetMouseY) * (double) mc.getMainWindow().getScaledHeight() / (double) mc.getMainWindow().getHeight();
+                            Screen.wrapScreenError(() ->
+                            {
                                 if(net.minecraftforge.client.ForgeHooksClient.onGuiMouseDragPre(screen, mouseX, mouseY, mc.mouseHelper.activeButton, dragX, dragY))
                                 {
                                     return;
@@ -251,12 +251,12 @@ public class ControllerInput
         Minecraft mc = Minecraft.getInstance();
         if(mc.currentScreen == null)
         {
-            nearSlot = false;
-            moved = false;
-            mouseSpeedX = 0.0;
-            mouseSpeedY = 0.0;
-            virtualMouseX = targetMouseX = prevTargetMouseX = (int) (mc.getMainWindow().getWidth() / 2F);
-            virtualMouseY = targetMouseY = prevTargetMouseY = (int) (mc.getMainWindow().getHeight() / 2F);
+            this.nearSlot = false;
+            this.moved = false;
+            this.mouseSpeedX = 0.0;
+            this.mouseSpeedY = 0.0;
+            this.virtualMouseX = this.targetMouseX = this.prevTargetMouseX = (int) (mc.getMainWindow().getWidth() / 2F);
+            this.virtualMouseY = this.targetMouseY = this.prevTargetMouseY = (int) (mc.getMainWindow().getHeight() / 2F);
         }
     }
 
@@ -267,17 +267,17 @@ public class ControllerInput
          * mouse position is different to the previous tick's position. This allows for the mouse
          * to still be used as input. */
         Minecraft mc = Minecraft.getInstance();
-        if(mc.currentScreen != null && (targetMouseX != prevTargetMouseX || targetMouseY != prevTargetMouseY))
+        if(mc.currentScreen != null && (this.targetMouseX != this.prevTargetMouseX || this.targetMouseY != this.prevTargetMouseY))
         {
             if(!(mc.currentScreen instanceof ControllerLayoutScreen))
             {
                 float partialTicks = Minecraft.getInstance().getRenderPartialTicks();
-                double mouseX = (prevTargetMouseX + (targetMouseX - prevTargetMouseX) * partialTicks + 0.5);
-                double mouseY = (prevTargetMouseY + (targetMouseY - prevTargetMouseY) * partialTicks + 0.5);
+                double mouseX = (this.prevTargetMouseX + (this.targetMouseX - this.prevTargetMouseX) * partialTicks + 0.5);
+                double mouseY = (this.prevTargetMouseY + (this.targetMouseY - this.prevTargetMouseY) * partialTicks + 0.5);
                 if(Controllable.getOptions().isVirtualMouse())
                 {
-                    virtualMouseX = mouseX;
-                    virtualMouseY = mouseY;
+                    this.virtualMouseX = mouseX;
+                    this.virtualMouseY = mouseY;
                     GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY);
                     GLFW.glfwSetInputMode(mc.getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
                 }
@@ -320,8 +320,8 @@ public class ControllerInput
                 Minecraft minecraft = event.getGui().getMinecraft();
                 if(minecraft.player == null || (minecraft.player.inventory.getItemStack().isEmpty() || type == CursorType.CONSOLE))
                 {
-                    double mouseX = (prevTargetMouseX + (targetMouseX - prevTargetMouseX) * Minecraft.getInstance().getRenderPartialTicks());
-                    double mouseY = (prevTargetMouseY + (targetMouseY - prevTargetMouseY) * Minecraft.getInstance().getRenderPartialTicks());
+                    double mouseX = (this.prevTargetMouseX + (this.targetMouseX - this.prevTargetMouseX) * Minecraft.getInstance().getRenderPartialTicks());
+                    double mouseY = (this.prevTargetMouseY + (this.targetMouseY - this.prevTargetMouseY) * Minecraft.getInstance().getRenderPartialTicks());
                     RenderSystem.translated(mouseX / minecraft.getMainWindow().getGuiScaleFactor(), mouseY / minecraft.getMainWindow().getGuiScaleFactor(), 500);
                     RenderSystem.color3f(1.0F, 1.0F, 1.0F);
                     RenderSystem.disableLighting();
@@ -352,10 +352,10 @@ public class ControllerInput
         if(player == null)
             return;
 
-        if(mc.currentScreen == null && (targetYaw != 0F || targetPitch != 0F))
+        if(mc.currentScreen == null && (this.targetYaw != 0F || this.targetPitch != 0F))
         {
             float elapsedTicks = Minecraft.getInstance().getTickLength();
-            player.rotateTowards((targetYaw / 0.15) * elapsedTicks, (targetPitch / 0.15) * (Controllable.getOptions().isInvertLook() ? -1 : 1) * elapsedTicks);
+            player.rotateTowards((this.targetYaw / 0.15) * elapsedTicks, (this.targetPitch / 0.15) * (Controllable.getOptions().isInvertLook() ? -1 : 1) * elapsedTicks);
             if(player.getRidingEntity() != null)
             {
                 player.getRidingEntity().applyOrientationToEntity(player);
@@ -588,8 +588,8 @@ public class ControllerInput
         if(event.phase == TickEvent.Phase.END)
             return;
 
-        targetYaw = 0F;
-        targetPitch = 0F;
+        this.targetYaw = 0F;
+        this.targetPitch = 0F;
 
         Minecraft mc = Minecraft.getInstance();
 
@@ -682,14 +682,14 @@ public class ControllerInput
         {
             if(ControllableButtons.ButtonActions.DROP_ITEM.getButton().isButtonDown())
             {
-                lastUse = 100;
-                dropCounter++;
+                this.lastUse = 100;
+                this.dropCounter++;
             }
         }
 
-        if(dropCounter > 20)
+        if(this.dropCounter > 20)
         {
-            if(!mc.player.isSpectator())
+            if (!mc.player.isSpectator())
             {
                 mc.player.func_225609_n_(true);
             }
@@ -701,7 +701,7 @@ public class ControllerInput
             {
                 mc.player.func_225609_n_(false);
             }
-            dropCounter = 0;
+            this.dropCounter = 0;
         }
     }
 
@@ -773,7 +773,7 @@ public class ControllerInput
 
                 if(Math.abs(controller.getLThumbStickYValue()) >= deadZone)
                 {
-                    lastUse = 100;
+                    this.lastUse = 100;
                     int dir = controller.getLThumbStickYValue() > 0.0F ? -1 : 1;
                     event.getMovementInput().forwardKeyDown = dir > 0;
                     event.getMovementInput().backKeyDown = dir < 0;
@@ -787,7 +787,7 @@ public class ControllerInput
 
                 if(Math.abs(controller.getLThumbStickXValue()) >= deadZone)
                 {
-                    lastUse = 100;
+                    this.lastUse = 100;
                     int dir = controller.getLThumbStickXValue() > 0.0F ? -1 : 1;
                     event.getMovementInput().rightKeyDown = dir < 0;
                     event.getMovementInput().leftKeyDown = dir > 0;
@@ -842,7 +842,7 @@ public class ControllerInput
             return;
         }
 
-        lastUse = 100;
+        this.lastUse = 100;
 
         ControllerEvent.ButtonInput eventInput = new ControllerEvent.ButtonInput(controller, button, state);
         if(MinecraftForge.EVENT_BUS.post(eventInput))
@@ -1042,7 +1042,6 @@ public class ControllerInput
                         }
                     }
                 }
-
             }
         }
         else
@@ -1095,7 +1094,7 @@ public class ControllerInput
 
     private void scrollCreativeTabs(CreativeScreen creative, int dir)
     {
-        lastUse = 100;
+        this.lastUse = 100;
 
         try
         {
@@ -1124,7 +1123,7 @@ public class ControllerInput
 
     private void moveMouseToClosestSlot(boolean moving, Screen screen)
     {
-        nearSlot = false;
+        this.nearSlot = false;
 
         /* Makes the mouse attracted to slots. This helps with selecting items when using
          * a controller. */
@@ -1138,8 +1137,8 @@ public class ControllerInput
             ContainerScreen guiContainer = (ContainerScreen) screen;
             int guiLeft = (guiContainer.width - guiContainer.getXSize()) / 2;
             int guiTop = (guiContainer.height - guiContainer.getYSize()) / 2;
-            int mouseX = (int) (targetMouseX * (double) mc.getMainWindow().getScaledWidth() / (double) mc.getMainWindow().getWidth());
-            int mouseY = (int) (targetMouseY * (double) mc.getMainWindow().getScaledHeight() / (double) mc.getMainWindow().getHeight());
+            int mouseX = (int) (this.targetMouseX * (double) mc.getMainWindow().getScaledWidth() / (double) mc.getMainWindow().getWidth());
+            int mouseY = (int) (this.targetMouseY * (double) mc.getMainWindow().getScaledHeight() / (double) mc.getMainWindow().getHeight());
 
             //Slot closestSlot = guiContainer.getSlotUnderMouse();
 
@@ -1161,7 +1160,7 @@ public class ControllerInput
 
             if(closestSlot != null && (closestSlot.getHasStack() || !mc.player.inventory.getItemStack().isEmpty()))
             {
-                nearSlot = true;
+                this.nearSlot = true;
                 int slotCenterXScaled = guiLeft + closestSlot.xPos + 8;
                 int slotCenterYScaled = guiTop + closestSlot.yPos + 8;
                 int slotCenterX = (int) (slotCenterXScaled / ((double) mc.getMainWindow().getScaledWidth() / (double) mc.getMainWindow().getWidth()));
@@ -1173,29 +1172,29 @@ public class ControllerInput
                 {
                     if(mouseX != slotCenterXScaled || mouseY != slotCenterYScaled)
                     {
-                        targetMouseX += deltaX * 0.75;
-                        targetMouseY += deltaY * 0.75;
+                        this.targetMouseX += deltaX * 0.75;
+                        this.targetMouseY += deltaY * 0.75;
                     }
                     else
                     {
-                        mouseSpeedX = 0.0F;
-                        mouseSpeedY = 0.0F;
+                        this.mouseSpeedX = 0.0F;
+                        this.mouseSpeedY = 0.0F;
                     }
                 }
 
-                mouseSpeedX *= 0.75F;
-                mouseSpeedY *= 0.75F;
+                this.mouseSpeedX *= 0.75F;
+                this.mouseSpeedY *= 0.75F;
             }
             else
             {
-                mouseSpeedX *= 0.1F;
-                mouseSpeedY *= 0.1F;
+                this.mouseSpeedX *= 0.1F;
+                this.mouseSpeedY *= 0.1F;
             }
         }
         else
         {
-            mouseSpeedX = 0.0F;
-            mouseSpeedY = 0.0F;
+            this.mouseSpeedX = 0.0F;
+            this.mouseSpeedY = 0.0F;
         }
     }
 
@@ -1257,7 +1256,8 @@ public class ControllerInput
 
             double finalMouseX = mouseX;
             double finalMouseY = mouseY;
-            Screen.wrapScreenError(() -> {
+            Screen.wrapScreenError(() ->
+            {
                 boolean cancelled = ForgeHooksClient.onGuiMouseClickedPre(screen, finalMouseX, finalMouseY, button);
                 if(!cancelled)
                 {
@@ -1287,8 +1287,8 @@ public class ControllerInput
             double mouseY = mc.mouseHelper.getMouseY();
             if(Controllable.getController() != null && Controllable.getOptions().isVirtualMouse() && lastUse > 0)
             {
-                mouseX = virtualMouseX;
-                mouseY = virtualMouseY;
+                mouseX = this.virtualMouseX;
+                mouseY = this.virtualMouseY;
             }
             mouseX = mouseX * (double) mc.getMainWindow().getScaledWidth() / (double) mc.getMainWindow().getWidth();
             mouseY = mouseY * (double) mc.getMainWindow().getScaledHeight() / (double) mc.getMainWindow().getHeight();
@@ -1297,7 +1297,8 @@ public class ControllerInput
 
             double finalMouseX = mouseX;
             double finalMouseY = mouseY;
-            Screen.wrapScreenError(() -> {
+            Screen.wrapScreenError(() ->
+            {
                 boolean cancelled = ForgeHooksClient.onGuiMouseReleasedPre(screen, finalMouseX, finalMouseY, button);
                 if(!cancelled)
                 {
