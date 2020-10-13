@@ -42,7 +42,7 @@ public class AimAssistSettingsScreen extends Screen
     }
 
     @Override
-    public void removed()
+    public void onClose()
     {
         Controllable.getOptions().saveOptions();
     }

@@ -117,11 +117,11 @@ public class Hooks
      * Fixes selected item name rendering not being offset by console hotbar
      */
     @SuppressWarnings("unused")
-    public static void applyHotbarOffset(MatrixStack matrixStack)
+    public static void applyHotbarOffset()
     {
         if(Controllable.getOptions().useConsoleHotbar())
         {
-            matrixStack.translate(0, -20, 0);
+            RenderSystem.translated(0, -20, 0);
         }
     }
 }

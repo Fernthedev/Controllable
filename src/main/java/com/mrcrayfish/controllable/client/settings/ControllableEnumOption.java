@@ -6,6 +6,7 @@ import net.minecraft.client.GameSettings;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.OptionButton;
 import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
 import java.util.function.BiConsumer;
@@ -21,9 +22,9 @@ public class ControllableEnumOption<T extends Enum<T> & IStringSerializable> ext
     private int ordinal = 0;
     private Function<GameSettings, T> getter;
     private BiConsumer<GameSettings, T> setter;
-    private BiFunction<GameSettings, ControllableEnumOption<T>, String> displayNameGetter;
+    private final BiFunction<GameSettings, ControllableEnumOption<T>, ITextComponent> displayNameGetter;
 
-    public ControllableEnumOption(String title, Class<T> enumClass, Function<GameSettings, T> getter, BiConsumer<GameSettings, T> setter, BiFunction<GameSettings, ControllableEnumOption<T>, String> displayNameGetter)
+    public ControllableEnumOption(String title, Class<T> enumClass, Function<GameSettings, T> getter, BiConsumer<GameSettings, T> setter, BiFunction<GameSettings, ControllableEnumOption<T>, ITextComponent> displayNameGetter)
     {
         super(title);
         this.enumClass = enumClass;
@@ -54,22 +55,20 @@ public class ControllableEnumOption<T extends Enum<T> & IStringSerializable> ext
     @Override
     public Widget createWidget(GameSettings options, int x, int y, int width)
     {
-        return new OptionButton(x, y, width, 20, this, new StringTextComponent(this.getTitle(options)), (button) -> {
+        return new OptionButton(x, y, width, 20, this, this.getTitle(options), (button) -> {
             this.nextEnum(options);
-            button.setMessage(new StringTextComponent(this.getTitle(options)));
+            button.setMessage(this.getTitle(options));
         });
     }
 
-    public String getTitle(GameSettings options)
+    public ITextComponent getTitle(GameSettings options)
     {
-        // TODO: FIX WHEN MAPPINGS DONE
-//        return this.getDisplayString() + this.displayNameGetter.apply(options, this);
-        return func_243220_a().getString() + displayNameGetter.apply(options, this);
+        return new StringTextComponent(this.getBaseMessageTranslation().getString() + ": " + this.displayNameGetter.apply(options, this).getString());
     }
 
     private T getEnum(int ordinal)
     {
-        T[] e = enumClass.getEnumConstants();
+        T[] e = this.enumClass.getEnumConstants();
         if(ordinal >= e.length) ordinal = 0;
         return e[ordinal];
     }

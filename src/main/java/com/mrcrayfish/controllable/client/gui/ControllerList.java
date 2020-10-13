@@ -30,7 +30,7 @@ public class ControllerList extends ExtendedList<ControllerEntry>
     public void reload()
     {
         this.clearEntries();
-        Array<com.badlogic.gdx.controllers.Controller> controllers = manager.getControllers();
+        Array<com.badlogic.gdx.controllers.Controller> controllers = this.manager.getControllers();
         for(int i = 0; i < controllers.size; i++)
         {
             this.addEntry(new ControllerEntry(this, (SDL2Controller) controllers.get(i)));
@@ -47,7 +47,7 @@ public class ControllerList extends ExtendedList<ControllerEntry>
             return;
         }
 
-        List<ControllerEntry> entries = this.children();
+        List<ControllerEntry> entries = this.getEventListeners();
         for(ControllerEntry entry : entries)
         {
             if(entry.getSdl2Controller() == controller.getSDL2Controller())

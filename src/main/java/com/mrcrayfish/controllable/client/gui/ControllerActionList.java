@@ -101,7 +101,7 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
         }
 
         @NotNull
-        public List<? extends IGuiEventListener> children() {
+        public List<? extends IGuiEventListener> getEventListeners() {
             return Collections.emptyList();
         }
     }
@@ -274,7 +274,7 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
             int size = 13;
 
             int x = btnChangeKeyBinding.x + (btnChangeKeyBinding.getWidth() - 13) / 2;
-            int y = btnChangeKeyBinding.y + (btnChangeKeyBinding.func_238483_d_() - 13) / 2; //getHeight
+            int y = btnChangeKeyBinding.y + (btnChangeKeyBinding.getHeightRealms() - 13) / 2; //getHeight
 
             minecraft.getTextureManager().bindTexture(CONTROLLER_BUTTONS);
 
@@ -284,9 +284,13 @@ public class ControllerActionList extends AbstractOptionList<ControllerActionLis
             matrixStack.pop();
         }
 
+
+
         @NotNull
         @Override
-        public List<? extends IGuiEventListener> children() {
+        public List<? extends IGuiEventListener> getEventListeners()
+        {
+
             return ImmutableList.of(this.btnChangeKeyBinding, this.btnReset);
         }
 

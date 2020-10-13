@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.TranslationTextComponent;
 import uk.co.electronstudio.sdl2gdx.SDL2ControllerManager;
 
@@ -25,7 +24,7 @@ public class ControllerSelectionScreen extends Screen
 
     public ControllerSelectionScreen(SDL2ControllerManager manager, Screen previousScreen)
     {
-        super(new TranslationTextComponent("controllable.selectController.title"));
+        super(new TranslationTextComponent("controllable.gui.title.select_controller"));
         this.manager = manager;
         this.previousScreen = previousScreen;
         this.controllerCount = manager.getControllers().size;
@@ -64,7 +63,7 @@ public class ControllerSelectionScreen extends Screen
     {
         this.renderBackground(matrixStack);
         this.listControllers.render(matrixStack, mouseX, mouseY, partialTicks);
-        this.drawCenteredString(matrixStack, this.font, I18n.format("controllable.gui.title.select_controller"), this.width / 2, 20, 16777215);
+        this.drawString(matrixStack, this.font, this.title, this.width / 2, 20, 0xFFFFFF);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
     }
 

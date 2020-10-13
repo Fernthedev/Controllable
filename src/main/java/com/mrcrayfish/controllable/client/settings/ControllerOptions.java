@@ -64,7 +64,7 @@ public class ControllerOptions
         Controllable.getOptions().cursorType = cursorType;
     }, (gameSettings, controllableEnumOption) -> {
         CursorType cursorType = controllableEnumOption.get(gameSettings);
-        return I18n.format("controllable.cursor." + cursorType.getString());
+        return new TranslationTextComponent("controllable.cursor." + cursorType.getString());
     });
 
     public static final ControllableEnumOption<ControllerType> CONTROLLER_TYPE = new ControllableEnumOption<>("controllable.options.controllerType", ControllerType.class, gameSettings -> {
@@ -73,7 +73,7 @@ public class ControllerOptions
         Controllable.getOptions().controllerType = controllerType;
     }, (gameSettings, controllableEnumOption) -> {
         ControllerType controllerType = controllableEnumOption.get(gameSettings);
-        return I18n.format("controllable.controller." + controllerType.getString());
+        return new TranslationTextComponent("controllable.controller." + controllerType.getString());
     });
 
     public static final BooleanOption INVERT_LOOK = new ControllableBooleanOption("controllable.options.invertLook", gameSettings -> {
@@ -123,9 +123,9 @@ public class ControllerOptions
         return new TranslationTextComponent("controllable.options.aimAssistIntensity.format", assistIntensity);
     });
 
-    public static final AbstractOption HOSTILE_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.hostile", AimAssistMode.class, gameSettings -> Controllable.getOptions().hostileAimMode, (gameSettings, mode) -> Controllable.getOptions().hostileAimMode = mode, (gameSettings, mode) -> I18n.format("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
-    public static final AbstractOption ANIMAL_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.animal", AimAssistMode.class, gameSettings -> Controllable.getOptions().animalAimMode, (gameSettings, mode) -> Controllable.getOptions().animalAimMode = mode, (gameSettings, mode) -> I18n.format("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
-    public static final AbstractOption PLAYER_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.player", AimAssistMode.class, gameSettings -> Controllable.getOptions().playerAimMode, (gameSettings, mode) -> Controllable.getOptions().playerAimMode = mode, (gameSettings, mode) -> I18n.format("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
+    public static final AbstractOption HOSTILE_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.hostile", AimAssistMode.class, gameSettings -> Controllable.getOptions().hostileAimMode, (gameSettings, mode) -> Controllable.getOptions().hostileAimMode = mode, (gameSettings, mode) -> new TranslationTextComponent(I18n.format("controllable.options.aimAssistMode." + mode.get(gameSettings).getString())));
+    public static final AbstractOption ANIMAL_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.animal", AimAssistMode.class, gameSettings -> Controllable.getOptions().animalAimMode, (gameSettings, mode) -> Controllable.getOptions().animalAimMode = mode, (gameSettings, mode) -> new TranslationTextComponent("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
+    public static final AbstractOption PLAYER_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.player", AimAssistMode.class, gameSettings -> Controllable.getOptions().playerAimMode, (gameSettings, mode) -> Controllable.getOptions().playerAimMode = mode, (gameSettings, mode) -> new TranslationTextComponent("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
 
     public static final AbstractOption TOGGLE_IGNORE_SAME_TEAM = new ControllableBooleanOption("controllable.options.aimAssist.ignoreSameTeam",
             gameSettings -> Controllable.getOptions().ignoreSameTeam,
@@ -313,32 +313,32 @@ public class ControllerOptions
 
     public boolean isRenderMiniPlayer()
     {
-        return renderMiniPlayer;
+        return this.renderMiniPlayer;
     }
 
     public boolean isVirtualMouse()
     {
-        return virtualMouse;
+        return this.virtualMouse;
     }
 
     public boolean useConsoleHotbar()
     {
-        return consoleHotbar;
+        return this.consoleHotbar;
     }
 
     public CursorType getCursorType()
     {
-        return cursorType;
+        return this.cursorType;
     }
 
     public ControllerType getControllerType()
     {
-        return controllerType;
+        return this.controllerType;
     }
 
     public boolean isInvertLook()
     {
-        return invertLook;
+        return this.invertLook;
     }
 
     public double getDeadZone()

@@ -25,7 +25,7 @@ public class ControllableOptionSlider extends OptionSlider
     {
         // TODO: FIX WHEN MAPPINGS DONE
         //        this.option.set(this.option, this.option.denormalizeValue(this.value));
-        this.option.set(this.field_238477_a_, this.option.denormalizeValue(this.field_230683_b_));
+        this.option.set(settings, this.option.denormalizeValue(this.sliderValue));
         Controllable.getOptions().saveOptions();
     }
 }

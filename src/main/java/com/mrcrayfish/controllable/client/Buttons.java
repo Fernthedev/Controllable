@@ -5,8 +5,6 @@ package com.mrcrayfish.controllable.client;
  */
 public class Buttons
 {
-    public static final int LENGTH = 17;
-
     public static final int A = 0;
     public static final int B = 1;
     public static final int X = 2;
@@ -65,4 +63,7 @@ public class Buttons
                 throw new IndexOutOfBoundsException("The button ID" + id + " cannot be less than 0 or greater than " + (LENGTH - 1));
         }
     }
+
+    public static final int LENGTH = 17;
+    public static final int[] BUTTONS = {A, B, X, Y, SELECT, HOME, START, LEFT_THUMB_STICK, RIGHT_THUMB_STICK, LEFT_BUMPER, RIGHT_BUMPER, LEFT_TRIGGER, RIGHT_TRIGGER, DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT};
 }

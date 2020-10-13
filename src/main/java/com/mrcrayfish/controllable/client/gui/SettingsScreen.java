@@ -4,6 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.client.settings.ControllerOptions;
 import net.minecraft.client.AbstractOption;
+import net.minecraft.client.gui.DialogTexts;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -35,11 +36,11 @@ public class SettingsScreen extends Screen
 
         this.addButton(new Button(this.width / 2 - 155, this.height / 6 + 24 * (OPTIONS.length + 1) / 2, 150, 20, new TranslationTextComponent("controllable.gui.title.settings.aim_assist"), (button) -> this.minecraft.displayGuiScreen(new AimAssistSettingsScreen(this))));
 
-        this.addButton(new Button(this.width / 2 + 5, this.height / 6 + 24 * (OPTIONS.length + 1) / 2, 150, 20, new TranslationTextComponent("gui.done"), (button) -> this.minecraft.displayGuiScreen(this.parentScreen)));
+        this.addButton(new Button(this.width / 2 + 5, this.height / 6 + 24 * (OPTIONS.length + 1) / 2, 150, 20, DialogTexts.GUI_BACK, (button) -> this.minecraft.displayGuiScreen(this.parentScreen)));
     }
 
     @Override
-    public void removed()
+    public void onClose()
     {
         Controllable.getOptions().saveOptions();
     }
@@ -48,7 +49,7 @@ public class SettingsScreen extends Screen
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks)
     {
         this.renderBackground(matrixStack);
-        this.drawCenteredString(matrixStack, this.font, this.title.getString(), this.width / 2, 20, 0xFFFFFF);
+        this.drawCenteredString(matrixStack, this.font, this.title, this.width / 2, 20, 0xFFFFFF);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
     }
 }

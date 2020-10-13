@@ -15,8 +15,7 @@ public class ButtonBinding
     private static final List<ButtonBinding> BINDINGS = new ArrayList<>();
 
     private int button;
-
-
+    
     private final int defaultId;
 
     private boolean pressed;
@@ -35,7 +34,7 @@ public class ButtonBinding
 
     public int getButtonId()
     {
-        return button;
+        return this.button;
     }
 
     public void setButton(int button)
@@ -45,12 +44,12 @@ public class ButtonBinding
 
     public boolean isButtonPressed()
     {
-        return pressed && pressedTime == 0;
+        return this.pressed && this.pressedTime == 0;
     }
 
     public boolean isButtonDown()
     {
-        return pressed;
+        return this.pressed;
     }
 
     public static void tick()

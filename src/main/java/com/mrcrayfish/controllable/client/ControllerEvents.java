@@ -19,6 +19,11 @@ public class ControllerEvents
     public void onPlayerUsingItem(LivingEntityUseItemEvent.Tick event)
     {
         // Ignore if player or vibration off
+        if(event.getEntity() != Minecraft.getInstance().player)
+        {
+            return;
+        }
+
         if(!Controllable.getOptions().useForceFeedback() || event.getEntity() != Minecraft.getInstance().player)
         {
             return;
@@ -71,25 +76,25 @@ public class ControllerEvents
         Minecraft mc = Minecraft.getInstance();
         if(mc.world != null && Controllable.getOptions().useForceFeedback())
         {
-            if(prevHealth == -1)
+            if(this.prevHealth == -1)
             {
-                prevHealth = mc.player.getHealth();
+                this.prevHealth = mc.player.getHealth();
             }
-            else if(prevHealth > mc.player.getHealth())
+            else if(this.prevHealth > mc.player.getHealth())
             {
-                float difference = prevHealth - mc.player.getHealth();
+                float difference = this.prevHealth - mc.player.getHealth();
                 float magnitude = difference / mc.player.getMaxHealth();
                 controller.getSDL2Controller().rumble(1.0F, 1.0F, (int) (800 * magnitude));
-                prevHealth = mc.player.getHealth();
+                this.prevHealth = mc.player.getHealth();
             }
             else
             {
-                prevHealth = mc.player.getHealth();
+                this.prevHealth = mc.player.getHealth();
             }
         }
-        else if(prevHealth != -1)
+        else if(this.prevHealth != -1)
         {
-            prevHealth = -1;
+            this.prevHealth = -1;
         }
     }
 }
