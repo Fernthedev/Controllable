@@ -307,6 +307,10 @@ public class ControllerInput
             drawVirtualCursor = false;
         }
 
+        if (Controllable.getController() == null) {
+            GLFW.glfwSetInputMode(Minecraft.getInstance().getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
+            drawVirtualCursor = false;
+        }
     }
 
     @SubscribeEvent(receiveCanceled = true)
