@@ -18,7 +18,7 @@ archivesBaseName = "controllable"
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
 minecraft {
-    mappings channel: 'snapshot', version: '20200707-1.16.1'
+    mappings channel: 'snapshot', version: '20200916-1.16.2'
     
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
@@ -66,15 +66,14 @@ configurations {
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.16.3-34.1.0'
+    libraries "uk.co.electronstudio.sdl2gdx:sdl2gdx:1.0.+"
 }
 
 repositories {
     jcenter()
 }
 
-dependencies {
-    libraries "uk.co.electronstudio.sdl2gdx:sdl2gdx:1.0.+"
-}
+
 
 jar {
     manifest {

@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[34,)"
+loaderVersion="[32,)"
 updateJSONURL="https://raw.githubusercontent.com/MrCrayfish/Controllable/master/update.json"
 issueTrackerURL="https://github.com/MrCrayfish/Controllable/issues"
 displayURL="https://mrcrayfish.com/mods?id=controllable"
