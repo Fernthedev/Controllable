@@ -60,8 +60,9 @@ public class RenderEvents
                             this.actions.put(Buttons.A, new Action(I18n.format("controllable.action.pickup_stack"), Action.Side.LEFT));
                             this.actions.put(Buttons.X, new Action(I18n.format("controllable.action.pickup_item"), Action.Side.LEFT));
                             this.actions.put(Buttons.B, new Action(I18n.format("controllable.action.quick_move"), Action.Side.LEFT));
-                            this.actions.put(ControllableButtons.ButtonActions.DROP_ITEM.getButton().getButtonId(), new Action(I18n.format("controllable.action.drop_item_held"), Action.Side.LEFT));
                         }
+                        if (!mc.player.inventory.getCurrentItem().isEmpty())
+                            this.actions.put(ControllableButtons.ButtonActions.DROP_ITEM.getButton().getButtonId(), new Action(I18n.format("controllable.action.drop_item_held"), Action.Side.LEFT));
                     }
                 }
                 else
