@@ -17,6 +17,7 @@
     "controllable.action.sprint": "Correr",
     "controllable.action.toggleSprint": "Alternar Correr: %s",
     "controllable.action.drop_item": "Soltar objeto",
+    "controllable.action.drop_item_held": "Soltar objecto en la mano",
     "controllable.action.pickup_stack": "Recoger stack",
     "controllable.action.pickup_item": "Recoger objeto",
     "controllable.action.quick_move": "Movimiento rápido",
