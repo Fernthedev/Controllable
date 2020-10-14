@@ -16,10 +16,10 @@ function initializeCoreMod() {
                 }, classNode);
 
                 patch({
-                     obfName: "func_184117_aA",
-                     name: "processKeyBinds",
-                     desc: "()V",
-                     patch: patch_Minecraft_processKeyBinds
+                    obfName: "func_184117_aA",
+                    name: "processKeyBinds",
+                    desc: "()V",
+                    patch: patch_Minecraft_processKeyBinds
                 }, classNode);
 
                 return classNode;
@@ -34,17 +34,17 @@ function initializeCoreMod() {
                 log("Patching ContainerScreen...");
 
                 patch({
-                    obfName: "func_73864_a",
+                    obfName: "func_231044_a_",
                     name: "mouseClicked",
                     desc: "(DDI)Z",
                     patch: patch_ContainerScreen_mouseClicked
                 }, classNode);
 
                 patch({
-                     obfName: "func_146286_b",
-                     name: "mouseReleased",
-                     desc: "(DDI)Z",
-                     patch: patch_ContainerScreen_mouseReleased
+                    obfName: "func_231048_c_",
+                    name: "mouseReleased",
+                    desc: "(DDI)Z",
+                    patch: patch_ContainerScreen_mouseReleased
                 }, classNode);
 
                 return classNode;
@@ -53,7 +53,7 @@ function initializeCoreMod() {
         'forge_ingame_gui': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraftforge.client.ForgeIngameGui'
+                'name': 'net.minecraftforge.client.gui.ForgeIngameGui'
             },
             'transformer': function(classNode) {
                 log("Patching ForgeIngameGui...");
@@ -61,16 +61,17 @@ function initializeCoreMod() {
                 patch({
                     obfName: "",
                     name: "renderPlayerList",
-                    desc: "(II)V",
+                    desc: "(IILcom/mojang/blaze3d/matrix/MatrixStack;)V",
                     patch: patch_ForgeIngameGui_renderPlayerList
                 }, classNode);
 
-                patch({
-                    obfName: "",
-                    name: "renderRecordOverlay",
-                    desc: "(IIF)V",
-                    patch: patch_IngameGui_renderSelectedItem
-                }, classNode);
+                // TODO: Fix, causes crash with negative array
+                // patch({
+                //     obfName: "",
+                //     name: "renderRecordOverlay",
+                //     desc: "(IIFLcom/mojang/blaze3d/matrix/MatrixStack;)V",
+                //     patch: patch_IngameGui_renderSelectedItem
+                // }, classNode);
 
                 return classNode;
             }
@@ -102,9 +103,10 @@ function initializeCoreMod() {
             'transformer': function(classNode) {
                 log("Patching IngameGui...");
                 patch({
-                    obfName: "func_194801_c ",
+                    obfName: "func_238453_b_ ",
+                    // name: "func_238453_b_",
                     name: "renderSelectedItem",
-                    desc: "()V",
+                    desc: "(Lcom/mojang/blaze3d/matrix/MatrixStack;)V",
                     patch: patch_IngameGui_renderSelectedItem
                 }, classNode);
                 return classNode;
@@ -265,6 +267,8 @@ function patch_ForgeIngameGui_renderPlayerList(method) {
     var foundNode = null;
     var instructions = method.instructions.toArray();
     var length = instructions.length;
+
+    log("Instructions " + method.instructions.toArray() + " length " + " " + length)
     for (var i = 0; i < length; i++) {
         var node = instructions[i];
         if(node.getOpcode() != Opcodes.INVOKEVIRTUAL)
@@ -296,8 +300,8 @@ function patch_ForgeIngameGui_renderPlayerList(method) {
 
 function patch_GameRenderer_updateCameraAndRender(method) {
     var findInstruction = {
-        name: "drawScreen",
-        desc: "(Lnet/minecraft/client/gui/screen/Screen;IIF)V",
+        name: "render",
+        desc: "(Lcom/mojang/blaze3d/matrix/MatrixStack;IIF)V",
         matches: function(s) {
             return s.equals(this.name);
         }
@@ -319,7 +323,7 @@ function patch_GameRenderer_updateCameraAndRender(method) {
     if(foundNode !== null) {
         var previousNode = foundNode.getPrevious();
         method.instructions.remove(foundNode);
-        method.instructions.insert(previousNode, new MethodInsnNode(Opcodes.INVOKESTATIC, "com/mrcrayfish/controllable/client/Hooks", "drawScreen", "()V", false));
+        method.instructions.insert(previousNode, new MethodInsnNode(Opcodes.INVOKESTATIC, "com/mrcrayfish/controllable/client/Hooks", "drawScreen", "(Lnet/minecraft/client/gui/screen/Screen;Lcom/mojang/blaze3d/matrix/MatrixStack;IIF)V", false));
         return true;
     }
     return false;
@@ -340,7 +344,7 @@ function patch_IngameGui_renderSelectedItem(method) {
     for (var i = 0; i < length; i++) {
         var node = instructions[i];
         if(node.getOpcode() != Opcodes.INVOKESTATIC)
-             continue;
+            continue;
         if(findInstruction.name.equals(node.name) && findInstruction.desc.equals(node.desc)) {
             foundNode = node;
             break;
