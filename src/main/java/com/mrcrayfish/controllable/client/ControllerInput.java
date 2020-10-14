@@ -8,6 +8,7 @@ import com.mrcrayfish.controllable.client.settings.ControllerOptions;
 import com.mrcrayfish.controllable.event.ControllerEvent;
 import com.mrcrayfish.controllable.registry.ControllableButtons;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.gui.screen.IngameMenuScreen;
@@ -29,6 +30,7 @@ import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.passive.WaterMobEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.ClickType;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemGroup;
@@ -1038,6 +1040,23 @@ public class ControllerInput
                 else if(button == Buttons.X)
                 {
                     invokeMouseClick(mc.currentScreen, 1);
+                }
+                else if(ControllableButtons.ButtonActions.DROP_ITEM.getButton().isButtonPressed())
+                {
+                    if (mc.currentScreen instanceof ContainerScreen && mc.player != null)
+                    {
+                        ClientPlayerEntity player = mc.player;
+                        PlayerInventory inventory = player.inventory;
+                        boolean isHotbar = inventory.getItemStack().isEmpty() && PlayerInventory.isHotbar(inventory.currentItem);
+
+
+                        if (isHotbar)
+                        {
+                            player.drop(false);
+                        } else {
+                            mc.playerController.windowClick(mc.player.container.windowId, -999, GLFW.GLFW_MOUSE_BUTTON_LEFT, ClickType.PICKUP, player);
+                        }
+                    }
                 }
                 else if(mc.player != null)
                 {
