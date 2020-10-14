@@ -636,9 +636,6 @@ public class ControllerInput
         if(mc.currentScreen == null)
         {
 
-            double pitchSpeed = Controllable.getOptions().getRotationSpeed();
-            double yawSpeed = Controllable.getOptions().getRotationSpeed();
-
             /* Handles rotating the yaw of player */
             if(Math.abs(controller.getRThumbStickXValue()) >= deadZone)
             {
