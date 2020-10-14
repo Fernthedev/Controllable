@@ -61,7 +61,7 @@ public class RenderEvents
                             this.actions.put(Buttons.X, new Action(I18n.format("controllable.action.pickup_item"), Action.Side.LEFT));
                             this.actions.put(Buttons.B, new Action(I18n.format("controllable.action.quick_move"), Action.Side.LEFT));
                         }
-                        if (!mc.player.inventory.getCurrentItem().isEmpty())
+                        if (!mc.player.inventory.getCurrentItem().isEmpty() && !mc.player.abilities.isCreativeMode && !mc.player.isSpectator())
                             this.actions.put(ControllableButtons.ButtonActions.DROP_ITEM.getButton().getButtonId(), new Action(I18n.format("controllable.action.drop_item_held"), Action.Side.LEFT));
                     }
                 }
@@ -69,7 +69,9 @@ public class RenderEvents
                 {
                     this.actions.put(Buttons.A, new Action(I18n.format("controllable.action.place_stack"), Action.Side.LEFT));
                     this.actions.put(Buttons.X, new Action(I18n.format("controllable.action.place_item"), Action.Side.LEFT));
-                    this.actions.put(ControllableButtons.ButtonActions.DROP_ITEM.getButton().getButtonId(), new Action(I18n.format("controllable.action.drop_item"), Action.Side.LEFT));
+
+                    if (!mc.player.abilities.isCreativeMode && !mc.player.isSpectator())
+                        this.actions.put(ControllableButtons.ButtonActions.DROP_ITEM.getButton().getButtonId(), new Action(I18n.format("controllable.action.drop_item"), Action.Side.LEFT));
                 }
 
                 this.actions.put(Buttons.Y, new Action(I18n.format("controllable.action.close_inventory"), Action.Side.RIGHT));
