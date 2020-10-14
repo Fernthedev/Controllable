@@ -17,6 +17,7 @@
   "controllable.action.sprint": "Sprint",
   "controllable.action.toggleSprint": "Toggle Sprint: %s",
   "controllable.action.drop_item": "Drop Item",
+  "controllable.action.drop_item_held": "Drop Item held in hands",
   "controllable.action.pickup_stack": "Pickup Stack",
   "controllable.action.pickup_item": "Pickup Item",
   "controllable.action.quick_move": "Quick Move",
