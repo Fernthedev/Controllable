@@ -1026,7 +1026,7 @@ public class ControllerInput
                 }
                 else if(ControllableButtons.ButtonActions.DROP_ITEM.getButton().isButtonPressed())
                 {
-                    if (mc.currentScreen instanceof ContainerScreen && mc.player != null)
+                    if (mc.currentScreen instanceof ContainerScreen && mc.player != null && !mc.player.isSpectator())
                     {
                         ClientPlayerEntity player = mc.player;
                         PlayerInventory inventory = player.inventory;
@@ -1036,7 +1036,8 @@ public class ControllerInput
                         if (isHotbar)
                         {
                             player.func_225609_n_(false);
-                        } else {
+                            // TODO: FIX CREATIVE DROP
+                        } else if (!mc.player.abilities.isCreativeMode) {
                             mc.playerController.windowClick(mc.player.container.windowId, -999, GLFW.GLFW_MOUSE_BUTTON_LEFT, ClickType.PICKUP, player);
                         }
                     }
