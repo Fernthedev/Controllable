@@ -8,6 +8,7 @@ import java.util.Map;
 /**
  * Author: MrCrayfish
  */
+@Deprecated
 public class AvailableActionsEvent extends Event
 {
     private Map<Integer, Action> actions;

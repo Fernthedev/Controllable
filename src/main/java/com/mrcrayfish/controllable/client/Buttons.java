@@ -1,5 +1,9 @@
 package com.mrcrayfish.controllable.client;
 
+import org.apache.commons.lang3.ArrayUtils;
+
+import javax.annotation.Nullable;
+
 /**
  * Author: MrCrayfish
  */
@@ -22,48 +26,38 @@ public class Buttons
     public static final int DPAD_DOWN = 14;
     public static final int DPAD_LEFT = 15;
     public static final int DPAD_RIGHT = 16;
-
-    public static String buttonNameFromId(int id) {
-        switch (id) {
-            case 0:
-                return "A";
-            case 1:
-                return "B";
-            case 2:
-                return "X";
-            case 3:
-                return "Y";
-            case 4:
-                return "SELECT";
-            case 5:
-                return "HOME";
-            case 6:
-                return "START";
-            case 7:
-                return "LEFT_THUMB_STICK";
-            case 8:
-                return "RIGHT_THUMB_STICK";
-            case 9:
-                return "LEFT_BUMPER";
-            case 10:
-                return "RIGHT_BUMPER";
-            case 11:
-                return "LEFT_TRIGGER";
-            case 12:
-                return "RIGHT_TRIGGER";
-            case 13:
-                return "DPAD_UP";
-            case 14:
-                return "DPAD_DOWN";
-            case 15:
-                return "DPAD_LEFT";
-            case 16:
-                return "DPAD_RIGHT";
-            default:
-                throw new IndexOutOfBoundsException("The button ID" + id + " cannot be less than 0 or greater than " + (LENGTH - 1));
-        }
-    }
-
     public static final int LENGTH = 17;
     public static final int[] BUTTONS = {A, B, X, Y, SELECT, HOME, START, LEFT_THUMB_STICK, RIGHT_THUMB_STICK, LEFT_BUMPER, RIGHT_BUMPER, LEFT_TRIGGER, RIGHT_TRIGGER, DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT};
+    public static final String[] NAMES = {
+        "controllable.button.a",
+        "controllable.button.b",
+        "controllable.button.x",
+        "controllable.button.y",
+        "controllable.button.select",
+        "controllable.button.home",
+        "controllable.button.start",
+        "controllable.button.left_thumb_stick",
+        "controllable.button.right_thumb_stick",
+        "controllable.button.left_bumper",
+        "controllable.button.right_bumper",
+        "controllable.button.left_trigger",
+        "controllable.button.right_trigger",
+        "controllable.button.dpad_up",
+        "controllable.button.dpad_down",
+        "controllable.button.dpad_left",
+        "controllable.button.dpad_right"
+    };
+
+    @Nullable
+    public static String getNameForButton(int button)
+    {
+        if(button < 0 || button >= LENGTH)
+            return null;
+        return NAMES[button];
+    }
+
+    public static int getButtonFromName(String name)
+    {
+        return ArrayUtils.indexOf(NAMES, name);
+    }
 }

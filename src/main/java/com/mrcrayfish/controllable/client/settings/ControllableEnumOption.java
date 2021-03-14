@@ -1,14 +1,19 @@
 package com.mrcrayfish.controllable.client.settings;
 
-import com.mrcrayfish.controllable.Controllable;
+import com.mrcrayfish.controllable.client.IToolTip;
 import net.minecraft.client.AbstractOption;
 import net.minecraft.client.GameSettings;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.OptionButton;
+import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -16,12 +21,14 @@ import java.util.function.Function;
 /**
  * Author: MrCrayfish
  */
-public class ControllableEnumOption<T extends Enum<T> & IStringSerializable> extends AbstractOption
+public class ControllableEnumOption<T extends Enum<T> & IStringSerializable> extends AbstractOption implements IToolTip
 {
     private Class<T> enumClass;
     private int ordinal = 0;
     private Function<GameSettings, T> getter;
     private BiConsumer<GameSettings, T> setter;
+    private BiFunction<GameSettings, ControllableEnumOption<T>, ITextComponent> displayNameGetter;
+    private TranslationTextComponent toolTip;
     private final BiFunction<GameSettings, ControllableEnumOption<T>, ITextComponent> displayNameGetter;
 
     public ControllableEnumOption(String title, Class<T> enumClass, Function<GameSettings, T> getter, BiConsumer<GameSettings, T> setter, BiFunction<GameSettings, ControllableEnumOption<T>, ITextComponent> displayNameGetter)
@@ -31,12 +38,12 @@ public class ControllableEnumOption<T extends Enum<T> & IStringSerializable> ext
         this.getter = getter;
         this.setter = setter;
         this.displayNameGetter = displayNameGetter;
+        this.toolTip = new TranslationTextComponent(title + ".desc");
     }
 
     private void nextEnum(GameSettings options)
     {
         this.set(options, this.getEnum(++ordinal));
-        Controllable.getOptions().saveOptions();
     }
 
     public void set(GameSettings options, T t)
@@ -71,5 +78,11 @@ public class ControllableEnumOption<T extends Enum<T> & IStringSerializable> ext
         T[] e = this.enumClass.getEnumConstants();
         if(ordinal >= e.length) ordinal = 0;
         return e[ordinal];
+    }
+
+    @Override
+    public List<IReorderingProcessor> getToolTip()
+    {
+        return Minecraft.getInstance().fontRenderer.trimStringToWidth(this.toolTip, 200);
     }
 }

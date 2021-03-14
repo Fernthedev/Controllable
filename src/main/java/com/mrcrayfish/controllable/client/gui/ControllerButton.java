@@ -3,13 +3,16 @@ package com.mrcrayfish.controllable.client.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mrcrayfish.controllable.Controllable;
+import com.mrcrayfish.controllable.client.Controller;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
 
 /**
  * Author: MrCrayfish
  */
-public class ControllerButton extends AbstractGui {
+public class ControllerButton extends AbstractGui
+{
+    protected ControllerLayoutScreen screen;
     protected int button;
     private int x, y;
     private int u, v;
@@ -17,8 +20,9 @@ public class ControllerButton extends AbstractGui {
     private int scale;
     private boolean hovered;
 
-    public ControllerButton(int button, int x, int y, int u, int v, int width, int height, int scale)
+    public ControllerButton(ControllerLayoutScreen screen, int button, int x, int y, int u, int v, int width, int height, int scale)
     {
+        this.screen = screen;
         this.button = button;
         this.x = x;
         this.y = y;
@@ -39,17 +43,25 @@ public class ControllerButton extends AbstractGui {
         int buttonY = y + this.y * this.scale;
         int buttonWidth = this.width * this.scale;
         int buttonHeight = this.height * this.scale;
+        Controller controller = Controllable.getController();
         this.hovered = mouseX >= buttonX && mouseY >= buttonY && mouseX < buttonX + buttonWidth && mouseY < buttonY + buttonHeight;
         if(this.hovered)
         {
             buttonV += this.height * 2;
         }
-        else if(Controllable.getController() != null && Controllable.isButtonPressed(this.button) || selected)
+        else if(controller != null && this.screen.isButtonPressed(this.button) || selected)
         {
             buttonV += this.height;
         }
         blit(matrixStack, buttonX, buttonY, this.width * this.scale, this.height * this.scale, buttonU, buttonV, this.width, this.height, 256, 256);
         RenderSystem.disableBlend();
+
+        // Draws an exclamation if the button has no button assigned to it!
+        if(this.isMissingMapping())
+        {
+            Minecraft.getInstance().getTextureManager().bindTexture(ControllerLayoutScreen.TEXTURE);
+            blit(matrixStack, buttonX + (buttonWidth - 4) / 2, buttonY + (buttonHeight - 15) / 2, 4, 15, 88, 0, 4, 15, 256, 256);
+        }
     }
 
     public int getButton()
@@ -60,5 +72,10 @@ public class ControllerButton extends AbstractGui {
     public boolean isHovered()
     {
         return this.hovered;
+    }
+
+    public boolean isMissingMapping()
+    {
+        return !this.screen.getReassignments().values().contains(this.button) && this.screen.remap(this.button) != this.button;
     }
 }

@@ -47,9 +47,12 @@ public class ControllerProperties
                 }
                 if(file.exists())
                 {
-                    properties.load(new FileInputStream(file));
-                    lastController = properties.getProperty("CurrentController", "");
-                    selectedMapping = properties.getProperty("SelectedMapping", "");
+                    try(FileInputStream is = new FileInputStream(file))
+                    {
+                        properties.load(is);
+                        lastController = properties.getProperty("CurrentController", "");
+                        selectedMapping = properties.getProperty("SelectedMapping", "");
+                    }
                 }
             }
             catch(IOException e)

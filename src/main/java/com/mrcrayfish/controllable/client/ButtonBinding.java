@@ -5,34 +5,42 @@ package com.mrcrayfish.controllable.client;
 import com.mrcrayfish.controllable.registry.ActionDataDescription;
 
 import java.util.ArrayList;
+import net.minecraft.client.resources.I18n;
+import net.minecraftforge.client.settings.IKeyConflictContext;
+
 import java.util.List;
 
 /**
  * Author: MrCrayfish
  */
-public class ButtonBinding
+public class ButtonBinding implements Comparable<ButtonBinding>
 {
-    private static final List<ButtonBinding> BINDINGS = new ArrayList<>();
-
+    private final int defaultButton;
     private int button;
-    
-    private final int defaultId;
+    private String descriptionKey;
+    private String category;
+    private IKeyConflictContext context;
 
     private boolean pressed;
     private int pressedTime;
+    private boolean reserved;
 
-    public ButtonBinding(int button)
+    public ButtonBinding(int button, String descriptionKey, String category, IKeyConflictContext context)
     {
+        this(button, descriptionKey, category, context, false);
+    }
+
+    ButtonBinding(int button, String descriptionKey, String category, IKeyConflictContext context, boolean reserved)
+    {
+        this.defaultButton = button;
         this.button = button;
-        this.defaultId = button;
-        BINDINGS.add(this);
+        this.descriptionKey = descriptionKey;
+        this.category = category;
+        this.context = context;
+        this.reserved = reserved;
     }
 
-    public void resetButton() {
-        button = defaultId;
-    }
-
-    public int getButtonId()
+    public int getButton()
     {
         return this.button;
     }
@@ -42,19 +50,44 @@ public class ButtonBinding
         this.button = button;
     }
 
+    public String getDescription()
+    {
+        return this.descriptionKey;
+    }
+
+    public String getCategory()
+    {
+        return this.category;
+    }
+
+    public boolean isDefault()
+    {
+        return this.button == this.defaultButton;
+    }
+
     public boolean isButtonPressed()
     {
-        return this.pressed && this.pressedTime == 0;
+        return this.pressed && this.pressedTime == 0 && this.isActiveAndValidContext();
+    }
+
+    public boolean isNotReserved()
+    {
+        return !this.reserved;
     }
 
     public boolean isButtonDown()
     {
-        return this.pressed;
+        return this.pressed && this.isActiveAndValidContext();
+    }
+
+    public void reset()
+    {
+        this.button = this.defaultButton;
     }
 
     public static void tick()
     {
-        for(ButtonBinding binding : BINDINGS)
+        for(ButtonBinding binding : BindingRegistry.getInstance().getRegisteredBindings())
         {
             if(binding.isButtonDown())
             {
@@ -65,11 +98,12 @@ public class ButtonBinding
 
     public static void setButtonState(int button, boolean state)
     {
-        for(ButtonBinding binding : BINDINGS)
+        List<ButtonBinding> bindings = BindingRegistry.getInstance().getBindingListForButton(button);
+        for(ButtonBinding binding : bindings)
         {
-            if(binding.getButtonId() == button)
+            binding.pressed = state;
+            if(state)
             {
-                binding.pressed = state;
                 binding.pressedTime = 0;
             }
         }
@@ -80,34 +114,63 @@ public class ButtonBinding
      */
     public static void resetButtonStates()
     {
-        for(ButtonBinding binding : BINDINGS)
+        for(ButtonBinding binding : BindingRegistry.getInstance().getRegisteredBindings())
         {
             binding.pressed = false;
         }
     }
 
-    public boolean isDefault() {
-        return button == defaultId;
+    @Override
+    public int compareTo(ButtonBinding o)
+    {
+        return I18n.format(this.descriptionKey).compareTo(I18n.format(o.descriptionKey));
     }
 
-    public boolean isInvalid() {
-        return button < 0 || button > Buttons.LENGTH;
+    public boolean isConflictingContext()
+    {
+        List<ButtonBinding> bindings = BindingRegistry.getInstance().getBindingListForButton(this.button);
+
+        if(bindings == null)
+            return false;
+
+        for(ButtonBinding binding : bindings)
+        {
+            if(this.conflicts(binding))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
-     *
-     * @param buttonBinding The button conflicting with this.
-     * @param actionDataDescription The action associated with the button. Used to check if the action is specifically compliant with this button.
-     *                   Meant to be used for custom implementations of {@link ButtonBinding}.
-     * @return true if it conflicts with another ButtonBinding.
-     * Only return true if applicable such as if the conflict is in the same circumstance, like riding a vehicle.
+     * Checks if the context is active and that this binding does not conflict with any other binding.
      */
-    public boolean conflicts(ButtonBinding buttonBinding, ActionDataDescription actionDataDescription) {
-        return button == buttonBinding.getButtonId();
+    private boolean isActiveAndValidContext()
+    {
+        return this.context.isActive() && !this.isConflictingContext();
     }
 
-    public int getDefaultId()
+    /**
+     * Tests if the given binding conflicts with this binding
+     *
+     * @param binding the binding to test against
+     * @return true if the bindings conflict
+     */
+    private boolean conflicts(ButtonBinding binding)
     {
-        return defaultId;
+        return this != binding && this.button == binding.getButton() && this.context.conflicts(binding.context);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return this.descriptionKey.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        return this == obj;
     }
 }
