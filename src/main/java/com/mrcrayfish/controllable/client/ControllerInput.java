@@ -171,7 +171,8 @@ public class ControllerInput
     {
         if(event.phase == TickEvent.Phase.START)
         {
-            this.prevTargetMouseX = this.targetMouseX;
+            this.
+                    prevTargetMouseX = this.targetMouseX;
             this.prevTargetMouseY = this.targetMouseY;
 
             if(this.lastUse > 0)
@@ -328,15 +329,11 @@ public class ControllerInput
                 Controllable.getController() != null &&
                         Config.CLIENT.options.virtualMouse.get() &&
                         !navigated &&
-                        !(
-                                Math.abs(Controllable.getController().getLThumbStickXValue()) > Config.CLIENT.options.deadZone.get() * 0.8 ||
-                                        Math.abs(Controllable.getController().getLThumbStickYValue()) > Config.CLIENT.options.deadZone.get() * 0.8
-                        )
-                        &&
+                        lastUse < 100 &&
                         (
                                 // Check if mouse move drastically.
-                                Math.abs(Minecraft.getInstance().mouseHelper.getMouseX() - virtualMouseX) > 3 * Config.CLIENT.options.mouseSpeed.get() * 0.5 ||
-                                        Math.abs(Minecraft.getInstance().mouseHelper.getMouseY() - virtualMouseY) > 3 * Config.CLIENT.options.mouseSpeed.get() * 0.5
+                                Math.abs(Minecraft.getInstance().mouseHelper.getMouseX() - virtualMouseX) > 1.5 * Config.CLIENT.options.mouseSpeed.get() ||
+                                        Math.abs(Minecraft.getInstance().mouseHelper.getMouseY() - virtualMouseY) > 1.5 * Config.CLIENT.options.mouseSpeed.get()
                         )
         )
         {
@@ -389,7 +386,7 @@ public class ControllerInput
     @SubscribeEvent(receiveCanceled = true)
     public void onRenderScreen(GuiScreenEvent.DrawScreenEvent.Post event)
     {
-        if(Controllable.getController() != null && Config.CLIENT.options.virtualMouse.get() && lastUse > 0 && drawVirtualCursor)
+        if(Controllable.getController() != null && Config.CLIENT.options.virtualMouse.get() && drawVirtualCursor)
         {
             MatrixStack matrixStack = event.getMatrixStack();
             matrixStack.push();
@@ -964,9 +961,16 @@ public class ControllerInput
             {
                 if(ButtonBindings.SPRINT.isButtonPressed())
                 {
-                    if(Config.CLIENT.options.toggleSprint.get() && mc.player != null)
+                    if (mc.player != null)
                     {
-                        sprinting = !sprinting;
+                        if(Config.CLIENT.options.toggleSprint.get())
+                        {
+                            sprinting = !sprinting;
+                        }
+                        else
+                        {
+                            mc.player.setSprinting(true);
+                        }
                     }
                 }
                 else if(ButtonBindings.INVENTORY.isButtonPressed())
@@ -981,13 +985,8 @@ public class ControllerInput
                         mc.displayGuiScreen(new InventoryScreen(mc.player));
                     }
                 }
-                else if(ButtonBindings.SPRINT.isButtonPressed())
-                {
-                    if(mc.player != null)
-                    {
-                        mc.player.setSprinting(true);
-                    }
-                }
+
+
                 else if(ButtonBindings.SNEAK.isButtonPressed())
                 {
                     if(mc.player != null && !mc.player.abilities.isFlying && !mc.player.isPassenger())
@@ -1580,6 +1579,7 @@ public class ControllerInput
             GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY);
             GLFW.glfwSetInputMode(mc.getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
             this.preventReset = true;
+            drawVirtualCursor = false;
         }
         navigated = true;
     }

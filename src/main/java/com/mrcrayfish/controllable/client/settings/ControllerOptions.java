@@ -5,7 +5,6 @@ import com.mrcrayfish.controllable.client.ActionVisibility;
 import com.mrcrayfish.controllable.client.ControllerIcons;
 import com.mrcrayfish.controllable.client.CursorType;
 import net.minecraft.client.AbstractOption;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.BooleanOption;
 import net.minecraft.client.settings.SliderPercentageOption;
 import net.minecraft.util.math.MathHelper;
@@ -92,10 +91,10 @@ public class ControllerOptions
         return new TranslationTextComponent("controllable.options.deadZone.format", FORMAT.format(deadZone));
     });
 
-    public static final SliderPercentageOption ROTATION_SPEED = new ControllableSliderPercentageOption("controllable.options.rotationSpeed", 1.0, 50.0, 1.0F, gameSettings -> {
+    public static final SliderPercentageOption ROTATION_SPEED = new ControllableSliderPercentageOption("controllable.options.rotationSpeed", 1.0, 200.0, 1.0F, gameSettings -> {
         return Config.CLIENT.options.rotationSpeed.get();
     }, (gameSettings, value) -> {
-        Config.CLIENT.options.rotationSpeed.set(MathHelper.clamp(value, 0.0, 50.0));
+        Config.CLIENT.options.rotationSpeed.set(MathHelper.clamp(value, 0.0, 200.0));
         Config.save();
     }, (gameSettings, option) -> {
         double rotationSpeed = Config.CLIENT.options.rotationSpeed.get();
@@ -144,9 +143,9 @@ public class ControllerOptions
         return new TranslationTextComponent("controllable.options.aimAssistIntensity.format", assistIntensity);
     });
 
-    public static final AbstractOption HOSTILE_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.hostile", Config.Client.AimAssistMode.class, gameSettings -> Config.CLIENT.options.hostileAimMode.get(), (gameSettings, mode) -> Config.CLIENT.options.hostileAimMode.set(mode), (gameSettings, mode) -> new TranslationTextComponent(I18n.format("controllable.options.aimAssistMode." + mode.get(gameSettings).getString())));
-    public static final AbstractOption ANIMAL_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.animal", Config.Client.AimAssistMode.class, gameSettings -> Config.CLIENT.options.animalAimMode.get(), (gameSettings, mode) -> Config.CLIENT.options.animalAimMode.set(mode), (gameSettings, mode) -> new TranslationTextComponent("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
-    public static final AbstractOption PLAYER_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.player", Config.Client.AimAssistMode.class, gameSettings -> Config.CLIENT.options.playerAimMode.get(), (gameSettings, mode) -> Config.CLIENT.options.playerAimMode.set(mode), (gameSettings, mode) -> new TranslationTextComponent("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
+    public static final ControllableEnumOption<Config.Client.AimAssistMode> HOSTILE_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.hostile", Config.Client.AimAssistMode.class, gameSettings -> Config.CLIENT.options.hostileAimMode.get(), (gameSettings, mode) -> Config.CLIENT.options.hostileAimMode.set(mode), (gameSettings, mode) -> new TranslationTextComponent("controllable.options.aimAssist.hostile", new TranslationTextComponent("controllable.options.aimAssistMode." + mode.get(gameSettings).getString())));
+    public static final ControllableEnumOption<Config.Client.AimAssistMode> ANIMAL_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.animal", Config.Client.AimAssistMode.class, gameSettings -> Config.CLIENT.options.animalAimMode.get(), (gameSettings, mode) -> Config.CLIENT.options.animalAimMode.set(mode), (gameSettings, mode) -> new TranslationTextComponent("controllable.options.aimAssist.animal", new TranslationTextComponent("controllable.options.aimAssistMode." + mode.get(gameSettings).getString())));
+    public static final ControllableEnumOption<Config.Client.AimAssistMode> PLAYER_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.player", Config.Client.AimAssistMode.class, gameSettings -> Config.CLIENT.options.playerAimMode.get(), (gameSettings, mode) -> Config.CLIENT.options.playerAimMode.set(mode), (gameSettings, mode) -> new TranslationTextComponent("controllable.options.aimAssist.player", new TranslationTextComponent("controllable.options.aimAssistMode." + mode.get(gameSettings).getString())));
 
     public static final AbstractOption TOGGLE_IGNORE_SAME_TEAM = new ControllableBooleanOption("controllable.options.aimAssist.ignoreSameTeam",
             gameSettings -> Config.CLIENT.options.toggleIgnoreSameTeam.get(),
