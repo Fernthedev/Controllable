@@ -3,6 +3,7 @@ package com.mrcrayfish.controllable;
 import com.mrcrayfish.controllable.client.ActionVisibility;
 import com.mrcrayfish.controllable.client.ControllerIcons;
 import com.mrcrayfish.controllable.client.CursorType;
+import net.minecraft.util.IStringSerializable;
 import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -45,6 +46,20 @@ public class Config
             public final ForgeConfigSpec.DoubleValue mouseSpeed;
             public final ForgeConfigSpec.EnumValue<ActionVisibility> showActions;
             public final ForgeConfigSpec.BooleanValue quickCraft;
+            public final ForgeConfigSpec.IntValue aimAssistIntensity;
+
+            public final ForgeConfigSpec.IntValue attackSpeed;
+
+            public final ForgeConfigSpec.BooleanValue toggleSprint;
+            public final ForgeConfigSpec.BooleanValue aimAssist;
+
+            public final ForgeConfigSpec.EnumValue<AimAssistMode> hostileAimMode;
+            public final ForgeConfigSpec.EnumValue<AimAssistMode> animalAimMode;
+            public final ForgeConfigSpec.EnumValue<AimAssistMode> playerAimMode;
+
+            public final ForgeConfigSpec.BooleanValue toggleIgnoreSameTeam;
+            public final ForgeConfigSpec.BooleanValue toggleIgnoreSameTeamFriendlyFire;
+            public final ForgeConfigSpec.BooleanValue toggleIgnorePets;
 
             public Options(ForgeConfigSpec.Builder builder)
             {
@@ -63,8 +78,67 @@ public class Config
                     this.mouseSpeed = builder.comment("The speed which the cursor or virtual mouse moves around the screen").defineInRange("mouseSpeed", 15.0, 0.0, 50.0);
                     this.showActions = builder.comment("If enabled, shows common actions when displaying available on the screen").defineEnum("showActions", ActionVisibility.MINIMAL);
                     this.quickCraft = builder.comment("If enabled, allows you to craft quickly when clicking an item in the recipe book").define("quickCraft", true);
+                    this.attackSpeed = builder.comment("The attack speed of the auto-attack").defineInRange("attackSpeed", 10, 5, 40);
+                    this.toggleSprint = builder.comment("Allows usage of sprinting with toggle").define("toggleSprint", false);
+
+                    this.aimAssist = builder.comment("Disables or enables aim assist").define("aimAssist", true);
+                    this.aimAssistIntensity = builder.comment("Changes how intense aim assist's control is").defineInRange("aimAssistIntensity", 90, 0, 100);
+
+                    this.hostileAimMode = builder.comment("Aim mode for hostile mobs").defineEnum("hostileAimMode", AimAssistMode.BOTH);
+                    this.animalAimMode = builder.comment("Aim mode for animals").defineEnum("animalAimMode", AimAssistMode.AIM);
+                    this.playerAimMode = builder.comment("Aim mode for players").defineEnum("playerAimMode", AimAssistMode.AIM);
+
+                    this.toggleIgnorePets = builder.comment("Makes aim assist ignore pets").define("toggleIgnorePets", true);
+                    this.toggleIgnoreSameTeam = builder.comment("Makes aim assist ignore your teammates").define("toggleIgnoreSameTeam", false);
+                    this.toggleIgnoreSameTeamFriendlyFire = builder.comment("Makes aim assist ignore your teammates if friendly fire is off").define("toggleIgnoreSameTeamFriendlyFire", true);
+
                 }
                 builder.pop();
+            }
+        }
+
+        public enum AimAssistMode implements IStringSerializable
+        {
+            NONE("none"),
+            SENSITIVITY("sensitivity"),
+            AIM("aim"),
+            BOTH("both");
+
+            private final String strMode;
+
+            AimAssistMode(String strMode)
+            {
+                this.strMode = strMode;
+            }
+
+            public static AimAssistMode byName(String value)
+            {
+                for(AimAssistMode aimAssistMode : values())
+                {
+                    if(aimAssistMode.strMode.equalsIgnoreCase(value))
+                        return aimAssistMode;
+                }
+                return null;
+            }
+
+            @Override
+            public String getString()
+            {
+                return strMode;
+            }
+
+            public boolean sensitivity()
+            {
+                return this == SENSITIVITY || this == BOTH;
+            }
+
+            public boolean aim()
+            {
+                return this == AIM || this == BOTH;
+            }
+
+            public boolean on() {
+                return aim() || sensitivity();
             }
         }
     }

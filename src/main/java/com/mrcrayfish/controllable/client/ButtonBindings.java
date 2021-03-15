@@ -1,5 +1,7 @@
 package com.mrcrayfish.controllable.client;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.client.settings.KeyConflictContext;
 
 /**
@@ -39,4 +41,21 @@ public class ButtonBindings
     public static final ButtonBinding CINEMATIC_CAMERA = new ButtonBinding(-1, "key.smoothCamera", "key.categories.misc", KeyConflictContext.IN_GAME);
     public static final ButtonBinding FULLSCREEN = new ButtonBinding(-1, "key.fullscreen", "key.categories.misc", KeyConflictContext.UNIVERSAL);
     public static final ButtonBinding DEBUG_INFO = new ButtonBinding(-1, "controllable.key.debugInfo", "key.categories.misc", KeyConflictContext.IN_GAME);
+    public static final ButtonBinding OPEN_CHAT = new ButtonBinding(-1, Minecraft.getInstance().gameSettings.keyBindChat.getTranslationKey(), "key.categories.gameplay", KeyConflictContext.IN_GAME);
+    public static final ButtonBinding OPEN_COMMAND_CHAT = new ButtonBinding(-1, Minecraft.getInstance().gameSettings.keyBindCommand.getTranslationKey(), "key.categories.gameplay", KeyConflictContext.IN_GAME);
+    public static final ButtonBinding SMOOTH_CAMERA_TOGGLE = new ButtonBinding(-1, Minecraft.getInstance().gameSettings.keyBindSmoothCamera.getTranslationKey(), "key.categories.gameplay", KeyConflictContext.IN_GAME);
+
+    public static final ButtonBinding[] slotButtonBindings = getSlotButtonBindings(9);
+
+    private static ButtonBinding[] getSlotButtonBindings(int size) {
+        ButtonBinding[] buttonBindings = new ButtonBinding[size];
+
+        for (int i = 0; i < buttonBindings.length; i++)
+        {
+            KeyBinding keyBinding = Minecraft.getInstance().gameSettings.keyBindsHotbar[i];
+            buttonBindings[i] = new ButtonBinding(-1, keyBinding.getTranslationKey(), keyBinding.getKeyCategory(), KeyConflictContext.IN_GAME);
+        }
+
+        return buttonBindings;
+    }
 }

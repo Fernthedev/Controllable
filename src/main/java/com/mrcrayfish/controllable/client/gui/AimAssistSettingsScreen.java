@@ -1,7 +1,7 @@
 package com.mrcrayfish.controllable.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mrcrayfish.controllable.Controllable;
+import com.mrcrayfish.controllable.Config;
 import com.mrcrayfish.controllable.client.settings.ControllerOptions;
 import net.minecraft.client.AbstractOption;
 import net.minecraft.client.gui.screen.Screen;
@@ -44,21 +44,21 @@ public class AimAssistSettingsScreen extends Screen
     @Override
     public void onClose()
     {
-        Controllable.getOptions().saveOptions();
+        Config.save();
     }
 
     @Override
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks)
     {
         this.renderBackground(matrixStack);
-        this.drawCenteredString(matrixStack, this.font, this.title.getString(), this.width / 2, 20, 0xFFFFFF);
+        drawCenteredString(matrixStack, this.font, this.title.getString(), this.width / 2, 20, 0xFFFFFF);
 
-        if (Controllable.getOptions().isAimAssist()) {
+        if (Config.CLIENT.options.aimAssist.get()) {
             drawCenteredString(matrixStack, minecraft.fontRenderer, TextFormatting.YELLOW + I18n.format("controllable.gui.title.settings.aim_assist.warning1"), this.width / 2, this.height / 6 + 32 * (OPTIONS.length + 1) / 2, 0xFFFFFF);
             drawCenteredString(matrixStack, minecraft.fontRenderer, TextFormatting.RED + I18n.format("controllable.gui.title.settings.aim_assist.warning2"), this.width / 2, this.height / 6 + 36 * (OPTIONS.length + 1) / 2, 0xFFFFFF);
             drawCenteredString(matrixStack, minecraft.fontRenderer, I18n.format("controllable.gui.title.settings.aim_assist.warning3"), this.width / 2, this.height / 6 + 40 * (OPTIONS.length + 1) / 2, 0xFFFFFF);
 
-            if (Controllable.getOptions().getAimAssistIntensity() > 90) {
+            if (Config.CLIENT.options.aimAssistIntensity.get() > 90) {
                 drawCenteredString(matrixStack, minecraft.fontRenderer,TextFormatting.RED + I18n.format("controllable.gui.title.settings.aim_assist_intensity.warning"), this.width / 2, this.height / 6 + 44 * (OPTIONS.length + 1) / 2, 0xFFFFFF);
 
             }

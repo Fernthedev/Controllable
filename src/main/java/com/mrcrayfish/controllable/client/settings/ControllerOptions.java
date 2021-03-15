@@ -8,8 +8,6 @@ import net.minecraft.client.AbstractOption;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.BooleanOption;
 import net.minecraft.client.settings.SliderPercentageOption;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TranslationTextComponent;
 
@@ -132,79 +130,36 @@ public class ControllerOptions
     });
 
 
-    public static final SliderPercentageOption ATTACK_SPEED = new ControllableSliderPercentageOption("controllable.options.attackSpeed", 5, 40, 1, gameSettings -> (double) Controllable.getOptions().attackSpeed, (gameSettings, value) -> Controllable.getOptions().attackSpeed = (int) MathHelper.clamp(value, 5, 40), (gameSettings, sliderPercentageOption) -> {
-        int attackSpeed = Controllable.getOptions().attackSpeed;
+    public static final SliderPercentageOption ATTACK_SPEED = new ControllableSliderPercentageOption("controllable.options.attackSpeed", 5, 40, 1, gameSettings -> (double) Config.CLIENT.options.attackSpeed.get(), (gameSettings, value) -> Config.CLIENT.options.attackSpeed.set((int) MathHelper.clamp(value, 5, 40)), (gameSettings, sliderPercentageOption) -> {
+        int attackSpeed = Config.CLIENT.options.attackSpeed.get();
         return new TranslationTextComponent("controllable.options.attackSpeed.format", FORMAT.format(attackSpeed));
     });
 
-    public static final AbstractOption TOGGLE_SPRINT = new ControllableBooleanOption("controllable.options.toggleSprint", gameSettings -> Controllable.getOptions().toggleSprint, (gameSettings, aBoolean) -> Controllable.getOptions().toggleSprint = aBoolean);
+    public static final AbstractOption TOGGLE_SPRINT = new ControllableBooleanOption("controllable.options.toggleSprint", gameSettings -> Config.CLIENT.options.toggleSprint.get(), (gameSettings, aBoolean) -> Config.CLIENT.options.toggleSprint.set(aBoolean));
 
-    public static final AbstractOption TOGGLE_AIM = new ControllableBooleanOption("controllable.options.aimAssist", gameSettings -> Controllable.getOptions().aimAssist, (gameSettings, aBoolean) -> Controllable.getOptions().aimAssist = aBoolean);
+    public static final AbstractOption TOGGLE_AIM = new ControllableBooleanOption("controllable.options.aimAssist", gameSettings -> Config.CLIENT.options.aimAssist.get(), (gameSettings, aBoolean) -> Config.CLIENT.options.aimAssist.set(aBoolean));
 
-    public static final SliderPercentageOption AIM_ASSIST_INTENSITY = new ControllableSliderPercentageOption("controllable.options.aimAssistIntensity", 1, 100, 1, gameSettings -> (double) Controllable.getOptions().aimAssistIntensity, (gameSettings, value) -> Controllable.getOptions().aimAssistIntensity = (int) MathHelper.clamp(value, 1, 100), (gameSettings, sliderPercentageOption) -> {
-        int assistIntensity = Controllable.getOptions().aimAssistIntensity;
+    public static final SliderPercentageOption AIM_ASSIST_INTENSITY = new ControllableSliderPercentageOption("controllable.options.aimAssistIntensity", 1, 100, 1, gameSettings -> (double) Config.CLIENT.options.aimAssistIntensity.get(), (gameSettings, value) -> Config.CLIENT.options.aimAssistIntensity.set((int) MathHelper.clamp(value, 1, 100)), (gameSettings, sliderPercentageOption) -> {
+        int assistIntensity = Config.CLIENT.options.aimAssistIntensity.get();
         return new TranslationTextComponent("controllable.options.aimAssistIntensity.format", assistIntensity);
     });
 
-    public static final AbstractOption HOSTILE_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.hostile", AimAssistMode.class, gameSettings -> Controllable.getOptions().hostileAimMode, (gameSettings, mode) -> Controllable.getOptions().hostileAimMode = mode, (gameSettings, mode) -> new TranslationTextComponent(I18n.format("controllable.options.aimAssistMode." + mode.get(gameSettings).getString())));
-    public static final AbstractOption ANIMAL_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.animal", AimAssistMode.class, gameSettings -> Controllable.getOptions().animalAimMode, (gameSettings, mode) -> Controllable.getOptions().animalAimMode = mode, (gameSettings, mode) -> new TranslationTextComponent("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
-    public static final AbstractOption PLAYER_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.player", AimAssistMode.class, gameSettings -> Controllable.getOptions().playerAimMode, (gameSettings, mode) -> Controllable.getOptions().playerAimMode = mode, (gameSettings, mode) -> new TranslationTextComponent("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
+    public static final AbstractOption HOSTILE_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.hostile", Config.Client.AimAssistMode.class, gameSettings -> Config.CLIENT.options.hostileAimMode.get(), (gameSettings, mode) -> Config.CLIENT.options.hostileAimMode.set(mode), (gameSettings, mode) -> new TranslationTextComponent(I18n.format("controllable.options.aimAssistMode." + mode.get(gameSettings).getString())));
+    public static final AbstractOption ANIMAL_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.animal", Config.Client.AimAssistMode.class, gameSettings -> Config.CLIENT.options.animalAimMode.get(), (gameSettings, mode) -> Config.CLIENT.options.animalAimMode.set(mode), (gameSettings, mode) -> new TranslationTextComponent("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
+    public static final AbstractOption PLAYER_AIM_MODE = new ControllableEnumOption<>("controllable.options.aimAssist.player", Config.Client.AimAssistMode.class, gameSettings -> Config.CLIENT.options.playerAimMode.get(), (gameSettings, mode) -> Config.CLIENT.options.playerAimMode.set(mode), (gameSettings, mode) -> new TranslationTextComponent("controllable.options.aimAssistMode." + mode.get(gameSettings).getString()));
 
     public static final AbstractOption TOGGLE_IGNORE_SAME_TEAM = new ControllableBooleanOption("controllable.options.aimAssist.ignoreSameTeam",
-            gameSettings -> Controllable.getOptions().ignoreSameTeam,
-            (gameSettings, aBoolean) -> Controllable.getOptions().ignoreSameTeam = aBoolean);
+            gameSettings -> Config.CLIENT.options.toggleIgnoreSameTeam.get(),
+            (gameSettings, aBoolean) -> Config.CLIENT.options.toggleIgnoreSameTeam.set(aBoolean));
 
     public static final AbstractOption TOGGLE_IGNORE_SAME_TEAM_FRIENDLY_FIRE = new ControllableBooleanOption("controllable.options.aimAssist.ignoreSameTeamFriendlyFire",
-            gameSettings -> Controllable.getOptions().ignoreSameTeamFriendlyFire,
-            (gameSettings, aBoolean) -> Controllable.getOptions().ignoreSameTeamFriendlyFire = aBoolean);
+            gameSettings -> Config.CLIENT.options.toggleIgnoreSameTeamFriendlyFire.get(),
+            (gameSettings, aBoolean) -> Config.CLIENT.options.toggleIgnoreSameTeamFriendlyFire.set(aBoolean));
 
     public static final AbstractOption TOGGLE_IGNORE_PETS = new ControllableBooleanOption("controllable.options.aimAssist.ignorePets",
-            gameSettings -> Controllable.getOptions().ignorePets,
-            (gameSettings, aBoolean) -> Controllable.getOptions().ignorePets = aBoolean);
+            gameSettings -> Config.CLIENT.options.toggleIgnorePets.get(),
+            (gameSettings, aBoolean) -> Config.CLIENT.options.toggleIgnorePets.set(aBoolean));
 
 
-    public enum AimAssistMode implements IStringSerializable
-    {
-        NONE("none"),
-        SENSITIVITY("sensitivity"),
-        AIM("aim"),
-        BOTH("both");
 
-        private String strMode;
-
-        AimAssistMode(String strMode)
-        {
-            this.strMode = strMode;
-        }
-
-        public static AimAssistMode byName(String value)
-        {
-            for(AimAssistMode aimAssistMode : values())
-            {
-                if(aimAssistMode.strMode.equalsIgnoreCase(value))
-                    return aimAssistMode;
-            }
-            return null;
-        }
-
-        @Override
-        public String getString()
-        {
-            return strMode;
-        }
-
-        public boolean sensitivity()
-        {
-            return this == SENSITIVITY || this == BOTH;
-        }
-
-        public boolean aim()
-        {
-            return this == AIM || this == BOTH;
-        }
-
-        public boolean on() {
-            return aim() || sensitivity();
-        }
-    }
 }

@@ -1,7 +1,6 @@
 package com.mrcrayfish.controllable.client;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mrcrayfish.controllable.Config;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.LocaleUtil;
@@ -10,7 +9,6 @@ import com.mrcrayfish.controllable.event.AvailableActionsEvent;
 import com.mrcrayfish.controllable.event.GatherActionsEvent;
 import com.mrcrayfish.controllable.event.RenderAvailableActionsEvent;
 import com.mrcrayfish.controllable.event.RenderPlayerPreviewEvent;
-import com.mrcrayfish.controllable.registry.ControllableButtons;
 import net.minecraft.block.ContainerBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.IngameGui;
@@ -74,7 +72,7 @@ public class RenderEvents
                             actionMap.put(ButtonBindings.QUICK_MOVE, new Action(I18n.format("controllable.action.quick_move"), Action.Side.LEFT));
                         }
                         if (!mc.player.inventory.getCurrentItem().isEmpty() && !mc.player.abilities.isCreativeMode && !mc.player.isSpectator())
-                            this.actions.put(ControllableButtons.ButtonActions.DROP_ITEM.getButton().getButtonId(), new Action(I18n.format("controllable.action.drop_item_held"), Action.Side.LEFT));
+                            this.actions.put(ButtonBindings.DROP_ITEM.getButton(), new Action(I18n.format("controllable.action.drop_item_held"), Action.Side.LEFT));
                     }
                 }
                 else
@@ -83,7 +81,7 @@ public class RenderEvents
                     actionMap.put(ButtonBindings.SPLIT_STACK, new Action(I18n.format("controllable.action.place_item"), Action.Side.LEFT));
 
                     if (!mc.player.abilities.isCreativeMode && !mc.player.isSpectator())
-                        this.actions.put(ControllableButtons.ButtonActions.DROP_ITEM.getButton().getButtonId(), new Action(I18n.format("controllable.action.drop_item"), Action.Side.LEFT));
+                        this.actions.put(ButtonBindings.DROP_ITEM.getButton(), new Action(I18n.format("controllable.action.drop_item"), Action.Side.LEFT));
 
                 }
 
@@ -199,11 +197,11 @@ public class RenderEvents
                     actionMap.put(ButtonBindings.SWAP_HANDS, new Action(I18n.format("controllable.action.swap_hands"), Action.Side.LEFT));
                 }
 
-                if ((!mc.player.getFoodStats().needFood() || mc.player.isCreative() || mc.player.abilities.isFlying ) && !mc.player.isSprinting() && !Controllable.getOptions().isToggleSprint()) {
-                    actions.put(ControllableButtons.ButtonActions.SPRINT.getButton().getButtonId(), new Action(I18n.format("controllable.action.sprint"), Action.Side.RIGHT));
+                if ((!mc.player.getFoodStats().needFood() || mc.player.isCreative() || mc.player.abilities.isFlying ) && !mc.player.isSprinting() && !Config.CLIENT.options.toggleSprint.get()) {
+                    actions.put(ButtonBindings.SPRINT.getButton(), new Action(I18n.format("controllable.action.sprint"), Action.Side.RIGHT));
                 } else {
-                    if (Controllable.getOptions().isToggleSprint()) {
-                        actions.put(ControllableButtons.ButtonActions.SPRINT.getButton().getButtonId(), new Action(I18n.format("controllable.action.toggleSprint", LocaleUtil.booleanLocale(Controllable.getInput().isSprinting())), Action.Side.RIGHT));
+                    if (Config.CLIENT.options.toggleSprint.get()) {
+                        actions.put(ButtonBindings.SPRINT.getButton(), new Action(I18n.format("controllable.action.toggleSprint", LocaleUtil.booleanLocale(Controllable.getInput().isSprinting())), Action.Side.RIGHT));
                     }
                 }
 
@@ -300,7 +298,7 @@ public class RenderEvents
             }
         }
 
-        if(mc.player != null && mc.currentScreen == null && Controllable.getOptions().renderMiniPlayer.get())
+        if(mc.player != null && mc.currentScreen == null && Config.CLIENT.options.renderMiniPlayer.get())
         {
             if(!MinecraftForge.EVENT_BUS.post(new RenderPlayerPreviewEvent()))
             {

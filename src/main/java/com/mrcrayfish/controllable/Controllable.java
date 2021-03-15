@@ -4,9 +4,6 @@ import com.google.common.io.ByteStreams;
 import com.mrcrayfish.controllable.client.*;
 import com.mrcrayfish.controllable.client.gui.ButtonBindingScreen;
 import com.mrcrayfish.controllable.client.gui.ControllerLayoutScreen;
-import com.mrcrayfish.controllable.client.settings.ControllerOptions;
-import com.mrcrayfish.controllable.registry.ButtonRegistry;
-import com.mrcrayfish.controllable.registry.ControllableButtons;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraftforge.api.distmarker.Dist;
@@ -21,10 +18,10 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.system.MemoryUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,9 +42,6 @@ public class Controllable implements IControllerListener
     private static ControllerInput input;
     private static File configFolder;
     private static boolean jeiLoaded;
-
-
-    private static ButtonRegistry buttonRegistry;
 
     public Controllable()
     {
@@ -83,9 +77,6 @@ public class Controllable implements IControllerListener
         Minecraft mc = event.getMinecraftSupplier().get();
         configFolder = new File(mc.gameDir, "config");
         jeiLoaded = ModList.get().isLoaded("jei");
-
-        buttonRegistry = new ButtonRegistry();
-        ControllableButtons.registerDefaults();
 
 
         ControllerProperties.load(configFolder);
@@ -132,8 +123,6 @@ public class Controllable implements IControllerListener
             return;
 
         BindingRegistry.getInstance().load();
-
-        ControllerProperties.loadActionRegistry();
     }
 
     @Override
@@ -328,10 +317,5 @@ public class Controllable implements IControllerListener
     private boolean getButtonState(int buttonCode)
     {
         return controller != null && controller.getGamepadState().buttons(buttonCode) == GLFW.GLFW_PRESS;
-    }
-
-    public static ButtonRegistry getButtonRegistry()
-    {
-        return buttonRegistry;
     }
 }

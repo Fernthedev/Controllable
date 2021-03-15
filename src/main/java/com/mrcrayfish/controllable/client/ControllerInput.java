@@ -1,8 +1,7 @@
 package com.mrcrayfish.controllable.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mrcrayfish.controllable.Config;
 import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mrcrayfish.controllable.Config;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.Reference;
 import com.mrcrayfish.controllable.client.gui.ControllerLayoutScreen;
@@ -10,14 +9,12 @@ import com.mrcrayfish.controllable.client.gui.navigation.BasicNavigationPoint;
 import com.mrcrayfish.controllable.client.gui.navigation.NavigationPoint;
 import com.mrcrayfish.controllable.client.gui.navigation.SlotNavigationPoint;
 import com.mrcrayfish.controllable.client.gui.navigation.WidgetNavigationPoint;
-import com.mrcrayfish.controllable.client.settings.ControllerOptions;
 import com.mrcrayfish.controllable.event.ControllerEvent;
 import com.mrcrayfish.controllable.event.GatherNavigationPointsEvent;
 import com.mrcrayfish.controllable.integration.JustEnoughItems;
 import com.mrcrayfish.controllable.mixin.client.CreativeScreenMixin;
 import com.mrcrayfish.controllable.mixin.client.RecipeBookGuiMixin;
 import com.mrcrayfish.controllable.mixin.client.RecipeBookPageAccessor;
-import com.mrcrayfish.controllable.registry.ControllableButtons;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
@@ -35,10 +32,10 @@ import net.minecraft.client.gui.widget.list.AbstractList;
 import net.minecraft.client.settings.PointOfView;
 import net.minecraft.client.util.MouseSmoother;
 import net.minecraft.client.util.NativeUtil;
-import net.minecraft.entity.item.BoatEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.controller.LookController;
+import net.minecraft.entity.item.BoatEntity;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.monster.PhantomEntity;
 import net.minecraft.entity.monster.SlimeEntity;
@@ -47,9 +44,9 @@ import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.passive.WaterMobEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.container.RecipeBookContainer;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.ClickType;
+import net.minecraft.inventory.container.RecipeBookContainer;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.network.play.client.CPlayerDiggingPacket;
@@ -57,13 +54,12 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.ScreenShotHelper;
 import net.minecraft.util.SoundEvents;
-import net.minecraft.util.ScreenShotHelper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector2f;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.ForgeHooksClient;
@@ -122,6 +118,7 @@ public class ControllerInput
     private float targetYaw;
 
     private boolean drawVirtualCursor = true;
+    private boolean navigated = false;
 
     private Entity aimAssistTarget;
     private boolean aimAssistIgnore = true; //If true, aim assist will not aim at an entity until it becomes false. True when mouse is moved, false when controller is moved. Mouse will always override controller state.
@@ -329,16 +326,17 @@ public class ControllerInput
             }
         } else if(
                 Controllable.getController() != null &&
-                        Controllable.getOptions().isVirtualMouse() &&
+                        Config.CLIENT.options.virtualMouse.get() &&
+                        !navigated &&
                         !(
-                                Math.abs(Controllable.getController().getLThumbStickXValue()) > Controllable.getOptions().getDeadZone() * 0.8 ||
-                                        Math.abs(Controllable.getController().getLThumbStickYValue()) > Controllable.getOptions().getDeadZone() * 0.8
+                                Math.abs(Controllable.getController().getLThumbStickXValue()) > Config.CLIENT.options.deadZone.get() * 0.8 ||
+                                        Math.abs(Controllable.getController().getLThumbStickYValue()) > Config.CLIENT.options.deadZone.get() * 0.8
                         )
                         &&
                         (
                                 // Check if mouse move drastically.
-                                Math.abs(Minecraft.getInstance().mouseHelper.getMouseX() - virtualMouseX) > 3 * Controllable.getOptions().getMouseSpeed() * 0.5 ||
-                                        Math.abs(Minecraft.getInstance().mouseHelper.getMouseY() - virtualMouseY) > 3 * Controllable.getOptions().getMouseSpeed() * 0.5
+                                Math.abs(Minecraft.getInstance().mouseHelper.getMouseX() - virtualMouseX) > 3 * Config.CLIENT.options.mouseSpeed.get() * 0.5 ||
+                                        Math.abs(Minecraft.getInstance().mouseHelper.getMouseY() - virtualMouseY) > 3 * Config.CLIENT.options.mouseSpeed.get() * 0.5
                         )
         )
         {
@@ -350,6 +348,7 @@ public class ControllerInput
             GLFW.glfwSetInputMode(Minecraft.getInstance().getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
             drawVirtualCursor = false;
         }
+        navigated = false;
     }
 
     private void performMouseDrag(double mouseX, double mouseY, double dragX, double dragY)
@@ -383,28 +382,6 @@ public class ControllerInput
                         }, "mouseDragged event handler", ((IGuiEventListener) screen).getClass().getCanonicalName());
                     }
                 }
-            }else if(
-                    Controllable.getController() != null &&
-                            Controllable.getOptions().isVirtualMouse() &&
-                            !(
-                                    Math.abs(Controllable.getController().getLThumbStickXValue()) > Controllable.getOptions().getDeadZone() * 0.8 ||
-                                            Math.abs(Controllable.getController().getLThumbStickYValue()) > Controllable.getOptions().getDeadZone() * 0.8
-                            )
-                            &&
-                            (
-                                    // Check if mouse move drastically.
-                                    Math.abs(Minecraft.getInstance().mouseHelper.getMouseX() - virtualMouseX) > 3 * Controllable.getOptions().getMouseSpeed() * 0.5 ||
-                                            Math.abs(Minecraft.getInstance().mouseHelper.getMouseY() - virtualMouseY) > 3 * Controllable.getOptions().getMouseSpeed() * 0.5
-                            )
-            )
-            {
-                GLFW.glfwSetInputMode(Minecraft.getInstance().getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
-                drawVirtualCursor = false;
-            }
-
-            if (Controllable.getController() == null) {
-                GLFW.glfwSetInputMode(Minecraft.getInstance().getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
-                drawVirtualCursor = false;
             }
         }
     }
@@ -412,7 +389,7 @@ public class ControllerInput
     @SubscribeEvent(receiveCanceled = true)
     public void onRenderScreen(GuiScreenEvent.DrawScreenEvent.Post event)
     {
-        if(Controllable.getController() != null && Config.CLIENT.options.virtualMouse.get() && lastUse > 0)
+        if(Controllable.getController() != null && Config.CLIENT.options.virtualMouse.get() && lastUse > 0 && drawVirtualCursor)
         {
             MatrixStack matrixStack = event.getMatrixStack();
             matrixStack.push();
@@ -427,7 +404,7 @@ public class ControllerInput
                     event.getGui().getMinecraft().getTextureManager().bindTexture(CURSOR_TEXTURE);
                     if(type == CursorType.CONSOLE)
                     {
-                        matrixStack.scale(0.5, 0.5, 0.5);
+                        matrixStack.scale(0.5f, 0.5f, 0.5f);
                     }
                     Screen.blit(event.getMatrixStack(), -8, -8, 16, 16, this.nearSlot ? 16 : 0, type.ordinal() * 16, 16, 16, 32, CursorType.values().length * 16);
                 }
@@ -498,7 +475,7 @@ public class ControllerInput
 
             if (entityRayTraceResult.getEntity() instanceof LivingEntity)
             {
-                ControllerOptions.AimAssistMode mode = getMode(entityRayTraceResult.getEntity());
+                Config.Client.AimAssistMode mode = getMode(entityRayTraceResult.getEntity());
                 if(mode != null && mode.on())
                 {
                     aimAssistTarget = entityRayTraceResult.getEntity();
@@ -508,7 +485,7 @@ public class ControllerInput
         }
 
         // intensity as percent decimal
-        float assistIntensity = Controllable.getOptions().getAimAssistIntensity() / 100.0f;
+        float assistIntensity = Config.CLIENT.options.aimAssistIntensity.get() / 100.0f;
 
         // Inverted intensity
         float invertedIntensity = (float) (1.0 - assistIntensity); // 1.0 - 1.0 max intensity // 1.0 - 0 = the least intensity
@@ -524,9 +501,9 @@ public class ControllerInput
         {
             float aimAssistTargetDistance = aimAssistTarget.getDistance(player);
 
-            ControllerOptions.AimAssistMode mode = getMode(aimAssistTarget); // Aim assist mode
+            Config.Client.AimAssistMode mode = getMode(aimAssistTarget); // Aim assist mode
 
-            if(mode != null && mode != ControllerOptions.AimAssistMode.NONE &&
+            if(mode != null && mode != Config.Client.AimAssistMode.NONE &&
                     player.canEntityBeSeen(aimAssistTarget)) // Avoid checking entities such as drops or tnt
             {
 
@@ -653,39 +630,39 @@ public class ControllerInput
         return entity instanceof LivingEntity ? entity.getPosYEye() : (entity.getBoundingBox().minY + entity.getBoundingBox().maxY) / 2.0D;
     }
 
-    private ControllerOptions.AimAssistMode getMode(Entity entity)
+    private Config.Client.AimAssistMode getMode(Entity entity)
     {
 
 
-        if (Controllable.getOptions().isIgnoreSameTeam() && entity.getTeam() != null && entity.isOnSameTeam(entity)) {
+        if (Config.CLIENT.options.toggleIgnoreSameTeam.get() && entity.getTeam() != null && entity.isOnSameTeam(entity)) {
 
             // If both are true (ignore when friendly fire is off || friendly fire is disabled)
-            boolean ignore = !Controllable.getOptions().isIgnoreSameTeamFriendlyFire() || !entity.getTeam().getAllowFriendlyFire();
+            boolean ignore = !Config.CLIENT.options.toggleIgnoreSameTeamFriendlyFire.get() || !entity.getTeam().getAllowFriendlyFire();
 
             if (ignore)
-                return ControllerOptions.AimAssistMode.NONE;
+                return Config.Client.AimAssistMode.NONE;
         }
 
         if(entity instanceof PlayerEntity)
         {
-            return Controllable.getOptions().getPlayerAimMode();
+            return Config.CLIENT.options.playerAimMode.get();
         }
 
         if(entity instanceof MonsterEntity || entity instanceof SlimeEntity || entity instanceof PhantomEntity)
         {
-            return Controllable.getOptions().getHostileAimMode();
+            return Config.CLIENT.options.hostileAimMode.get();
         }
 
         if(entity instanceof AnimalEntity || entity instanceof AmbientEntity || entity instanceof WaterMobEntity)
         {
-            if (Controllable.getOptions().isIgnorePets() && entity instanceof TameableEntity) {
+            if (Config.CLIENT.options.toggleIgnorePets.get() && entity instanceof TameableEntity) {
                 TameableEntity tameableEntity = (TameableEntity) entity;
                 if (tameableEntity.getOwnerId() == Minecraft.getInstance().player.getUniqueID()) {
-                    return ControllerOptions.AimAssistMode.NONE;
+                    return Config.Client.AimAssistMode.NONE;
                 }
             }
 
-            return Controllable.getOptions().getAnimalAimMode();
+            return Config.CLIENT.options.animalAimMode.get();
         }
 
 
@@ -716,7 +693,7 @@ public class ControllerInput
         if(controller == null)
             return;
 
-        float deadZone = (float) Controllable.getOptions().getDeadZone();
+        float deadZone = Config.CLIENT.options.deadZone.get().floatValue();
         controllerInput = (Math.abs(controller.getRThumbStickXValue()) >= deadZone || Math.abs(controller.getRThumbStickYValue()) >= deadZone); // True if controller has been moved
 
         mouseMoved &= !controllerInput; // true if both are true
@@ -724,7 +701,6 @@ public class ControllerInput
 
         if(mc.currentScreen == null)
         {
-            float deadZone = Config.CLIENT.options.deadZone.get().floatValue();
 
             /* Handles rotating the yaw of player */
             if(Math.abs(controller.getRThumbStickXValue()) >= deadZone)
@@ -756,7 +732,7 @@ public class ControllerInput
 
 
 
-            if(Controllable.getOptions().isAimAssist())
+            if(Config.CLIENT.options.aimAssist.get())
             {
                 Vector2f aimAssist = handleAimAssist(targetYaw, targetPitch);
 
@@ -855,22 +831,23 @@ public class ControllerInput
 
         event.getMovementInput().sneaking = this.sneaking;
 
-        if (Controllable.getOptions().isToggleSprint()) {
-            if (keyboardSprinting && !mc.gameSettings.keyBindSprint.isKeyDown()) {
+        if(Config.CLIENT.options.toggleSprint.get())
+        {
+            if(keyboardSprinting && !mc.gameSettings.keyBindSprint.isKeyDown())
+            {
                 sprinting = false;
                 keyboardSprinting = false;
             }
 
-            if (mc.gameSettings.keyBindSprint.isKeyDown()) {
+            if(mc.gameSettings.keyBindSprint.isKeyDown())
+            {
                 sprinting = true;
                 keyboardSprinting = true;
             }
 
-
-
             sprinting |= mc.gameSettings.keyBindSprint.isKeyDown();
 
-            if (!mc.player.isSprinting())
+            if(!mc.player.isSprinting())
                 mc.player.setSprinting(sprinting);
         }
 
@@ -918,19 +895,18 @@ public class ControllerInput
             {
                 event.getMovementInput().jump = true;
             }
-        }
-
 
             // Reset timer if it reaches target
-            if(currentAttackTimer > Controllable.getOptions().getAttackSpeed())
+            if(currentAttackTimer > Config.CLIENT.options.attackSpeed.get())
                 currentAttackTimer = 0;
 
-            if(ControllableButtons.ButtonActions.USE_ITEM.getButton().isButtonDown() && mc.rightClickDelayTimer == 0 && !mc.player.isHandActive())
+            if(ButtonBindings.USE_ITEM.isButtonDown() && mc.rightClickDelayTimer == 0 && !mc.player.isHandActive())
             {
                 mc.rightClickMouse();
             }
 
-            else if (ControllableButtons.ButtonActions.ATTACK.getButton().isButtonDown() && mc.objectMouseOver != null && mc.objectMouseOver.getType() == RayTraceResult.Type.ENTITY && currentAttackTimer == 0) {
+            else if(ButtonBindings.ATTACK.isButtonDown() && mc.objectMouseOver != null && mc.objectMouseOver.getType() == RayTraceResult.Type.ENTITY && currentAttackTimer == 0)
+            {
                 // This is to keep attacking while the button is held and staring at a mob
                 mc.clickMouse();
                 currentAttackTimer = 1;
@@ -938,12 +914,14 @@ public class ControllerInput
 
             // Keep the timer going if the first attack was registered
             // This is to avoid only increasing timer while staring at a mob.
-            if (ControllableButtons.ButtonActions.ATTACK.getButton().isButtonDown() && currentAttackTimer > 0) {
+            if(ButtonBindings.ATTACK.isButtonDown() && currentAttackTimer > 0)
+            {
                 currentAttackTimer++;
             }
 
             // Reset timer when button is no longer held
-            if (!ControllableButtons.ButtonActions.ATTACK.getButton().isButtonDown()) {
+            if(!ButtonBindings.ATTACK.isButtonDown())
+            {
                 currentAttackTimer = 0;
             }
         }
@@ -984,14 +962,14 @@ public class ControllerInput
             }
             else if(mc.currentScreen == null)
             {
-                if(ControllableButtons.ButtonActions.SPRINT.getButton().isButtonPressed())
+                if(ButtonBindings.SPRINT.isButtonPressed())
                 {
-                    if(Controllable.getOptions().isToggleSprint() && mc.player != null)
+                    if(Config.CLIENT.options.toggleSprint.get() && mc.player != null)
                     {
                         sprinting = !sprinting;
                     }
                 }
-                else if(ControllableButtons.ButtonActions.INVENTORY.getButton().isButtonPressed())
+                else if(ButtonBindings.INVENTORY.isButtonPressed())
                 {
                     if(mc.playerController.isRidingHorse())
                     {
@@ -1071,7 +1049,7 @@ public class ControllerInput
                 {
                     boolean slotPressed = false;
 
-                    ButtonBinding[] slotButtonBindings = ControllableButtons.getSlotButtonBindings();
+                    ButtonBinding[] slotButtonBindings = ButtonBindings.slotButtonBindings;
                     for(int i = 0; i < slotButtonBindings.length; i++)
                     {
                         ButtonBinding buttonBinding = slotButtonBindings[i];
@@ -1086,30 +1064,30 @@ public class ControllerInput
 
                     if(!slotPressed)
                     {
-                        if(ControllableButtons.ButtonActions.OPEN_CHAT.getButton().isButtonPressed())
+                        if(ButtonBindings.OPEN_CHAT.isButtonPressed())
                         {
                             mc.displayGuiScreen(new ChatScreen(""));
                         }
-                        else if(ControllableButtons.ButtonActions.OPEN_COMMAND_CHAT.getButton().isButtonPressed())
+                        else if(ButtonBindings.OPEN_COMMAND_CHAT.isButtonPressed())
                         {
                             mc.displayGuiScreen(new ChatScreen("/"));
                         }
-                        else if(ControllableButtons.ButtonActions.SMOOTH_CAMERA_TOGGLE.getButton().isButtonPressed())
+                        else if(ButtonBindings.SMOOTH_CAMERA_TOGGLE.isButtonPressed())
                         {
                             mc.gameSettings.smoothCamera = !mc.gameSettings.smoothCamera;
                         }
                         else if(!mc.player.isHandActive())
                         {
-                            if(ControllableButtons.ButtonActions.ATTACK.getButton().isButtonPressed())
+                            if(ButtonBindings.ATTACK.isButtonPressed())
                             {
                                 mc.clickMouse();
                                 currentAttackTimer = 1;
                             }
-                            else if(ControllableButtons.ButtonActions.USE_ITEM.getButton().isButtonPressed())
+                            else if(ButtonBindings.USE_ITEM.isButtonPressed())
                             {
                                 mc.rightClickMouse();
                             }
-                            else if(ControllableButtons.ButtonActions.PICK_BLOCK.getButton().isButtonPressed())
+                            else if(ButtonBindings.PICK_BLOCK.isButtonPressed())
                             {
                                 mc.middleClickMouse();
                             }
@@ -1233,10 +1211,9 @@ public class ControllerInput
                     else if(mc.currentScreen instanceof ContainerScreen)
                     {
                         ContainerScreen<?> screen = (ContainerScreen<?>) mc.currentScreen;
-                        ButtonBinding[] slotButtonBindings = ControllableButtons.getSlotButtonBindings();
-                        for(int i = 0; i < slotButtonBindings.length; i++)
+                        for(int i = 0; i < ButtonBindings.slotButtonBindings.length; i++)
                         {
-                            ButtonBinding buttonBinding = slotButtonBindings[i];
+                            ButtonBinding buttonBinding = ButtonBindings.slotButtonBindings[i];
 
                             if(buttonBinding.isButtonPressed() && screen.getSlotUnderMouse() != null)
                             {
@@ -1382,6 +1359,7 @@ public class ControllerInput
             double lastTargetMouseY = this.targetMouseY;
             this.targetMouseX = this.prevTargetMouseX = screenX;
             this.targetMouseY = this.prevTargetMouseY = screenY;
+            drawVirtualCursor = true;
             this.setMousePosition(screenX, screenY);
             mc.getSoundHandler().play(SimpleSound.master(SoundEvents.ENTITY_ITEM_PICKUP, 2.0F));
             this.performMouseDrag(this.targetMouseX, this.targetMouseY, screenX - lastTargetMouseX, screenY - lastTargetMouseY);
@@ -1588,20 +1566,22 @@ public class ControllerInput
 
     private void setMousePosition(double mouseX, double mouseY)
     {
+        Minecraft mc = Minecraft.getInstance();
         if(Config.CLIENT.options.virtualMouse.get())
         {
             this.virtualMouseX = mouseX;
             this.virtualMouseY = mouseY;
             GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY);
             GLFW.glfwSetInputMode(mc.getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
+            drawVirtualCursor = true;
         }
         else
         {
-            Minecraft mc = Minecraft.getInstance();
             GLFW.glfwSetCursorPos(mc.getMainWindow().getHandle(), mouseX, mouseY);
-            GLFW.glfwSetInputMode(mc.getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN);
+            GLFW.glfwSetInputMode(mc.getMainWindow().getHandle(), GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
             this.preventReset = true;
         }
+        navigated = true;
     }
 
     private void handleCreativeScrolling(CreativeScreen creative, Controller controller)

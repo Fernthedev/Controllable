@@ -49,6 +49,15 @@ public class BindingRegistry
         getInstance().register(ButtonBindings.CINEMATIC_CAMERA);
         getInstance().register(ButtonBindings.FULLSCREEN);
         getInstance().register(ButtonBindings.DEBUG_INFO);
+        getInstance().register(ButtonBindings.OPEN_CHAT);
+        getInstance().register(ButtonBindings.OPEN_COMMAND_CHAT);
+        getInstance().register(ButtonBindings.CINEMATIC_CAMERA);
+
+        for(ButtonBinding slotButtonBinding : ButtonBindings.slotButtonBindings)
+        {
+            getInstance().register(slotButtonBinding);
+        }
+
     }
 
     private static BindingRegistry instance;
