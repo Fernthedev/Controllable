@@ -14,7 +14,7 @@ public class ButtonBindings
     public static final ButtonBinding SPRINT = new ButtonBinding(Buttons.LEFT_THUMB_STICK, "key.sprint", "key.categories.movement", KeyConflictContext.IN_GAME);
     public static final ButtonBinding INVENTORY = new ButtonBinding(Buttons.Y, "key.inventory", "key.categories.inventory", KeyConflictContext.UNIVERSAL);
     public static final ButtonBinding SWAP_HANDS = new ButtonBinding(Buttons.X, "key.swapOffhand", "key.categories.gameplay", KeyConflictContext.IN_GAME);
-    public static final ButtonBinding DROP_ITEM = new ButtonBinding(Buttons.DPAD_DOWN, "key.drop", "key.categories.gameplay", KeyConflictContext.IN_GAME);
+    public static final ButtonBinding DROP_ITEM = new ButtonBinding(-1, "key.drop", "key.categories.gameplay", KeyConflictContext.UNIVERSAL);
     public static final ButtonBinding USE_ITEM = new ButtonBinding(Buttons.LEFT_TRIGGER, "key.use", "key.categories.gameplay", KeyConflictContext.IN_GAME);
     public static final ButtonBinding ATTACK = new ButtonBinding(Buttons.RIGHT_TRIGGER, "key.attack", "key.categories.gameplay", KeyConflictContext.IN_GAME);
     public static final ButtonBinding PICK_BLOCK = new ButtonBinding(Buttons.DPAD_LEFT, "key.pickItem", "key.categories.gameplay", KeyConflictContext.IN_GAME);
@@ -41,9 +41,9 @@ public class ButtonBindings
     public static final ButtonBinding CINEMATIC_CAMERA = new ButtonBinding(-1, "key.smoothCamera", "key.categories.misc", KeyConflictContext.IN_GAME);
     public static final ButtonBinding FULLSCREEN = new ButtonBinding(-1, "key.fullscreen", "key.categories.misc", KeyConflictContext.UNIVERSAL);
     public static final ButtonBinding DEBUG_INFO = new ButtonBinding(-1, "controllable.key.debugInfo", "key.categories.misc", KeyConflictContext.IN_GAME);
-    public static final ButtonBinding OPEN_CHAT = new ButtonBinding(-1, Minecraft.getInstance().gameSettings.keyBindChat.getTranslationKey(), "key.categories.gameplay", KeyConflictContext.IN_GAME);
-    public static final ButtonBinding OPEN_COMMAND_CHAT = new ButtonBinding(-1, Minecraft.getInstance().gameSettings.keyBindCommand.getTranslationKey(), "key.categories.gameplay", KeyConflictContext.IN_GAME);
-    public static final ButtonBinding SMOOTH_CAMERA_TOGGLE = new ButtonBinding(-1, Minecraft.getInstance().gameSettings.keyBindSmoothCamera.getTranslationKey(), "key.categories.gameplay", KeyConflictContext.IN_GAME);
+    public static final ButtonBinding OPEN_CHAT = new ButtonBinding(-1, Minecraft.getInstance().gameSettings.keyBindChat.getKeyDescription(), "key.categories.gameplay", KeyConflictContext.IN_GAME);
+    public static final ButtonBinding OPEN_COMMAND_CHAT = new ButtonBinding(-1, Minecraft.getInstance().gameSettings.keyBindCommand.getKeyDescription(), "key.categories.gameplay", KeyConflictContext.IN_GAME);
+    public static final ButtonBinding SMOOTH_CAMERA_TOGGLE = new ButtonBinding(-1, Minecraft.getInstance().gameSettings.keyBindSmoothCamera.getKeyDescription(), "key.categories.gameplay", KeyConflictContext.IN_GAME);
 
     public static final ButtonBinding[] slotButtonBindings = getSlotButtonBindings(9);
 
@@ -53,7 +53,7 @@ public class ButtonBindings
         for (int i = 0; i < buttonBindings.length; i++)
         {
             KeyBinding keyBinding = Minecraft.getInstance().gameSettings.keyBindsHotbar[i];
-            buttonBindings[i] = new ButtonBinding(-1, keyBinding.getTranslationKey(), keyBinding.getKeyCategory(), KeyConflictContext.IN_GAME);
+            buttonBindings[i] = new ButtonBinding(-1, keyBinding.getKeyDescription(), keyBinding.getKeyCategory(), KeyConflictContext.IN_GAME);
         }
 
         return buttonBindings;

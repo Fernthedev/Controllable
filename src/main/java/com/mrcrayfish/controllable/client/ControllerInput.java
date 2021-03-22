@@ -961,7 +961,7 @@ public class ControllerInput
             {
                 if(ButtonBindings.SPRINT.isButtonPressed())
                 {
-                    if (mc.player != null)
+                    if(mc.player != null)
                     {
                         if(Config.CLIENT.options.toggleSprint.get())
                         {
@@ -985,7 +985,6 @@ public class ControllerInput
                         mc.displayGuiScreen(new InventoryScreen(mc.player));
                     }
                 }
-
 
                 else if(ButtonBindings.SNEAK.isButtonPressed())
                 {
@@ -1183,30 +1182,38 @@ public class ControllerInput
                 {
                     invokeMouseClick(mc.currentScreen, 1);
                 }
-                else if(button == ButtonBindings.QUICK_MOVE.getButton() && mc.player != null)
+                else if(mc.player != null)
                 {
-                    if (mc.currentScreen instanceof ContainerScreen && mc.player != null && !mc.player.isSpectator())
+                    // Drop items in inventory
+                    if(button == ButtonBindings.DROP_ITEM.getButton() && mc.currentScreen instanceof ContainerScreen && !mc.player.isSpectator())
                     {
                         ClientPlayerEntity player = mc.player;
                         PlayerInventory inventory = player.inventory;
                         boolean isHotbar = inventory.getItemStack().isEmpty() && PlayerInventory.isHotbar(inventory.currentItem);
 
-
-                        if (isHotbar)
+                        if(isHotbar)
                         {
                             player.drop(false);
                             // TODO: FIX CREATIVE DROP
-                        } else if (!mc.player.abilities.isCreativeMode) {
+                        }
+                        else if(!mc.player.abilities.isCreativeMode)
+                        {
                             mc.playerController.windowClick(mc.player.container.windowId, -999, GLFW.GLFW_MOUSE_BUTTON_LEFT, ClickType.PICKUP, player);
                         }
                     }
-                }
-                else if(mc.player != null)
-                {
-                    if(button == Buttons.B && mc.player.inventory.getItemStack().isEmpty())
+                    // Quick move item
+                    else if(button == ButtonBindings.QUICK_MOVE.getButton())
                     {
-                        invokeMouseClick(mc.currentScreen, 0);
+                        if(mc.player.inventory.getItemStack().isEmpty())
+                        {
+                            invokeMouseClick(mc.currentScreen, 0);
+                        }
+                        else
+                        {
+                            invokeMouseReleased(mc.currentScreen, 1);
+                        }
                     }
+                    // Select item from slot number
                     else if(mc.currentScreen instanceof ContainerScreen)
                     {
                         ContainerScreen<?> screen = (ContainerScreen<?>) mc.currentScreen;
@@ -1222,14 +1229,6 @@ public class ControllerInput
 
                             }
                         }
-                    }
-                    if(mc.player.inventory.getItemStack().isEmpty())
-                    {
-                        invokeMouseClick(mc.currentScreen, 0);
-                    }
-                    else
-                    {
-                        invokeMouseReleased(mc.currentScreen, 1);
                     }
                 }
             }
@@ -1281,6 +1280,10 @@ public class ControllerInput
                 if(creative.getSelectedTabIndex() < ItemGroup.GROUPS.length - 1)
                 {
                     method.invoke(creative, ItemGroup.GROUPS[creative.getSelectedTabIndex() + 1]);
+                } else // Loop around
+                {
+                    method.invoke(creative, ItemGroup.GROUPS[0]);
+
                 }
             }
             else if(dir < 0)
@@ -1288,6 +1291,9 @@ public class ControllerInput
                 if(creative.getSelectedTabIndex() > 0)
                 {
                     method.invoke(creative, ItemGroup.GROUPS[creative.getSelectedTabIndex() - 1]);
+                } else // Loop around
+                {
+                    method.invoke(creative, ItemGroup.GROUPS[ItemGroup.GROUPS.length - 1]);
                 }
             }
         }
@@ -1416,7 +1422,7 @@ public class ControllerInput
             points.add(new WidgetNavigationPoint(posX, posY, widget));
         }
 
-        if(screen instanceof CreativeScreen)
+        if(screen instanceof CreativeScreen && false) // TODO: Why is it throwing assertion in Mixin?
         {
             int tabPage = CreativeScreenMixin.getTabPage();
             int start = tabPage * 10;

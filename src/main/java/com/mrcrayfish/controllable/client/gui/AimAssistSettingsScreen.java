@@ -2,6 +2,7 @@ package com.mrcrayfish.controllable.client.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mrcrayfish.controllable.Config;
+import com.mrcrayfish.controllable.client.IToolTip;
 import com.mrcrayfish.controllable.client.settings.ControllerOptions;
 import net.minecraft.client.AbstractOption;
 import net.minecraft.client.gui.screen.Screen;
@@ -9,6 +10,7 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Based on {@link SettingsScreen} by Author: MrCrayfish
@@ -19,6 +21,8 @@ public class AimAssistSettingsScreen extends Screen
 {
     private static final AbstractOption[] OPTIONS = new AbstractOption[]{ControllerOptions.TOGGLE_AIM, ControllerOptions.AIM_ASSIST_INTENSITY, ControllerOptions.ANIMAL_AIM_MODE, ControllerOptions.HOSTILE_AIM_MODE, ControllerOptions.PLAYER_AIM_MODE, ControllerOptions.TOGGLE_IGNORE_SAME_TEAM, ControllerOptions.TOGGLE_IGNORE_SAME_TEAM_FRIENDLY_FIRE, ControllerOptions.TOGGLE_IGNORE_PETS};
     private final Screen parentScreen;
+    private IToolTip hoveredTooltip;
+    private int hoveredCounter;
 
     protected AimAssistSettingsScreen(Screen parentScreen)
     {
@@ -65,5 +69,45 @@ public class AimAssistSettingsScreen extends Screen
         }
 
         super.render(matrixStack, mouseX, mouseY, partialTicks);
+
+        this.hoveredTooltip = this.getHoveredToolTip(mouseX, mouseY);
+        if(this.hoveredTooltip != null && this.hoveredCounter >= 20)
+        {
+            this.renderTooltip(matrixStack, this.hoveredTooltip.getToolTip(), mouseX, mouseY);
+        }
+    }
+
+    @Override
+    public void tick()
+    {
+        if(this.hoveredTooltip != null)
+        {
+            if(this.hoveredCounter < 20)
+            {
+                this.hoveredCounter++;
+            }
+        }
+        else
+        {
+            this.hoveredCounter = 0;
+        }
+    }
+
+    @Nullable
+    private IToolTip getHoveredToolTip(int mouseX, int mouseY)
+    {
+        for(int i = 0; i < OPTIONS.length; i++)
+        {
+            AbstractOption option = OPTIONS[i];
+            if(!(option instanceof IToolTip))
+                continue;
+            int x = this.width / 2 - 155 + i % 2 * 160;
+            int y = this.height / 6 + 24 * (i >> 1);
+            if(mouseX >= x && mouseY >= y && mouseX < x + 150 && mouseY < y + 20)
+            {
+                return (IToolTip) option;
+            }
+        }
+        return null;
     }
 }
